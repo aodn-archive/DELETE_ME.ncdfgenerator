@@ -30,7 +30,7 @@ public class MyIT {
 		String url = "jdbc:postgresql://115.146.94.132/harvest";   // nectar instance, needs to move to test resources configuration
 		Properties props = new Properties();
 		props.setProperty("user","meteo");
-		props.setProperty("password","meteo");
+		props.setProperty("password","meteo123");
 
 
 		props.setProperty("ssl","true");
