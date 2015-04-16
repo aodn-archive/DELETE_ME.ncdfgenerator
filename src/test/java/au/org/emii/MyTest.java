@@ -76,7 +76,7 @@ public class MyTest {
 		assertTrue( expr instanceof ExprProc);
 		ExprProc expr0 = (ExprProc) expr;
 		assertTrue( expr0.symbol.equals( "AND" ));
-		// should test precendence
+		// TODO check lhs for precendence
     }
 
 	@Test
@@ -84,7 +84,7 @@ public class MyTest {
 	{
 		IExpression expr = doExprTest( " 123 <= SYM AND 666 > 777 OR 888 = '2015-01-13T23:00:00Z' " );
 		assertTrue( expr instanceof ExprProc);
-		// should test precendence
+		// TODO check lhs for precendence
     }
 
 
@@ -104,4 +104,45 @@ public class MyTest {
 		IExpression expr = doExprTest( s ); 
     }
 
+/*
+	syntax...
+	
+ 	select ST_GeomFromText( 'POINT( 1, 1 )' );
+
+	select st_intersects( ST_GeomFromText( 'POINT( 1 1 )' ),  ST_GeomFromText( 'POINT( 1 1 )' ) );
+*/
+
+    @Test
+    public void test06() throws Exception
+	{
+		// example cql filter query expression from 
+		// https://github.com/aodn/netcdf-subset-service
+		String s = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
+		IExpression expr = doExprTest( s ); 
+
+/*
+		StringBuilder b = new StringBuilder();
+
+		// should use the actual class that's there to create the builder.
+		PGDialectSelectionGenerator sg = new PGDialectSelectionGenerator( b );
+		// public PGDialectSelectionGenerator( StringBuilder b )
+*/
+
+		IDialectTranslate dt = new PGDialectTranslate(); 
+
+		String s2 = dt.process( expr ); 
+
+		System.out.println( "whoot " + s2 ) ; 
+
+	
+    }
+
+
+
+
+
 }
+
+
+
+
