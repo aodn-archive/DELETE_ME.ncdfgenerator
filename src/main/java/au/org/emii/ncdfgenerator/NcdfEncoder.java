@@ -78,15 +78,22 @@ class NcdfEncoder
 
 		// geom, comes from the instance table for timeseries..
 
-		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
+//		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
 
 
-		query = "SELECT distinct data.instance_id  FROM ( select ts_id as instance_id, * from measurement ) as data  left join timeseries t on t.id = data.instance_id where " + selection + ";" ;
+		// TODO  substitute the virtual tables back into this expression... 
+		// actually probably do this first if this is wha
+		// String query = "SELECT distinct data.instance_id FROM (" + definition.virtualDataTable + ") as data left join timeseries t on t.id = data.instance_id where " + selection + ";" ;
+	
+		// ok, so if we're going to combine this stuff, then it's actually simpler, 
+	
+		String query = 
+			"SELECT distinct data.instance_id" + 
+			" FROM (" + definition.virtualDataTable + ") as data" +
+			" left join (" + definition.virtualInstanceTable + ") instance" + 
+			" on instance.id = data.instance_id" + 
+			" where " + selection + ";" ;
 
-/*
-SELECT distinct data.instance_id  FROM (select ts_id as instance_id, * from measurement) as data left join timeseries t on t.id = data.instance_id  limit 3
-
-*/		
 
 		System.out.println( "first query " + query  );
 
