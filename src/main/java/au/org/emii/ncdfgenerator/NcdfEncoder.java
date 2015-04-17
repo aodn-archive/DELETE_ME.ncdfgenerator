@@ -28,7 +28,7 @@ class NcdfEncoder
 	final String filterExpr;
 
 	final int fetchSize;
-	IExpression selection_expr;
+	IExpression selectionExpr;
 	ResultSet featureInstancesRS;
 
 	public NcdfEncoder(
@@ -48,7 +48,7 @@ class NcdfEncoder
 
 		fetchSize = 1000;
 		featureInstancesRS = null;
-		selection_expr = null;
+		selectionExpr = null;
 	}
 
 	public void prepare() throws Exception
@@ -56,12 +56,12 @@ class NcdfEncoder
 
 		System.out.println( "encoder prepare " + filterExpr );
 
-		selection_expr = exprParser.parseExpression( filterExpr );
+		selectionExpr = exprParser.parseExpression( filterExpr );
 
 		System.out.println( "done parsing expression" );
 
 		// bad, should return expr or throw
-		if(selection_expr == null) {
+		if(selectionExpr == null) {
 			throw new NcdfGeneratorException( "failed to parse expression" );
 		}
 
@@ -73,7 +73,7 @@ class NcdfEncoder
 		s.execute();
 		s.close();
 
-		String selection = translate.process( selection_expr);
+		String selection = translate.process( selectionExpr);
 
 		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
 		System.out.println( "first query " + query  );
@@ -154,7 +154,7 @@ class NcdfEncoder
 
 				System.out.println( "instance_id is " + instance_id );
 
-				String selection = translate.process( selection_expr); // we ought to be caching the specific query ???
+				String selection = translate.process( selectionExpr); // we ought to be caching the specific query ???
 
 				populateValues( definition.dimensions, definition.encoders,
 					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instance_id) );

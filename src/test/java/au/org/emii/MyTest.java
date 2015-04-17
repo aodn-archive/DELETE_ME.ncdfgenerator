@@ -105,6 +105,20 @@ public class MyTest {
 		IExpression expr = doExprTest( s ); 
     }
 
+	@Test
+    public void testParseThatShouldThrow() throws Exception
+	{
+		boolean didThrow = false; 
+		try {
+			String s = " and ( 2013-6 ) "; 
+			IExprParser p =	new ExprParser() ;
+			IExpression expr = p.parseExpression( s);
+		} catch( Exception e )
+		{
+			didThrow = true;
+		}
+		assertTrue( didThrow );
+	}
 /*
 	syntax...
  	select ST_GeomFromText( 'POINT( 1, 1 )' );
@@ -123,24 +137,7 @@ public class MyTest {
 		System.out.println( "####\n" + s2 ); 
     }
 
-	 @Test
-    public void testParseThatShouldThrow() throws Exception
-	{
-//		String s = " (and (gt TIME 2013-6-28T00:35:01Z ) ) "; 
-		// String s = " (and (gt 2013-6-28T00:35:01Z ) ) "; 
-//		String s = " (and ( 2013-6-28T00:35:01Z ) ) "; 
-
-		boolean didThrow = false; 
-		try {
-			String s = " and ( 2013-6 ) "; 
-			IExprParser p =	new ExprParser() ;
-			IExpression expr = p.parseExpression( s);
-		} catch( Exception e )
-		{
-			didThrow = true;
-		}
-		assertTrue( didThrow );
-	}	
+	
 
 }
 
