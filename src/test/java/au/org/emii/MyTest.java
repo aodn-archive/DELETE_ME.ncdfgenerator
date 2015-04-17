@@ -25,9 +25,9 @@ public class MyTest {
 		IExprParser p =	new ExprParser() ;
 		IExpression expr = p.parseExpression( s);
 		assertFalse( expr == null );
-		System.out.println( "****" );
-		expr.accept( new PrettyPrinterVisitor( System.out ) );
-		System.out.println( "" );
+		// System.out.println( "****" );
+		//expr.accept( new PrettyPrinterVisitor( System.out ) );
+		// System.out.println( "" );
 		return expr;
 	}
 
@@ -106,43 +106,21 @@ public class MyTest {
 
 /*
 	syntax...
-	
  	select ST_GeomFromText( 'POINT( 1, 1 )' );
-
 	select st_intersects( ST_GeomFromText( 'POINT( 1 1 )' ),  ST_GeomFromText( 'POINT( 1 1 )' ) );
 */
 
     @Test
-    public void test06() throws Exception
+    public void testRewriter() throws Exception
 	{
-		// example cql filter query expression from 
-		// https://github.com/aodn/netcdf-subset-service
-		String s = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
-		IExpression expr = doExprTest( s ); 
+		// errors will throw
 
-/*
-		StringBuilder b = new StringBuilder();
-
-		// should use the actual class that's there to create the builder.
-		PGDialectSelectionGenerator sg = new PGDialectSelectionGenerator( b );
-		// public PGDialectSelectionGenerator( StringBuilder b )
-*/
-
+		String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
+		IExpression expr = doExprTest( cql ); 
 		IDialectTranslate dt = new PGDialectTranslate(); 
-
 		String s2 = dt.process( expr ); 
-
-		System.out.println( "whoot " + s2 ) ; 
-
-	
+		System.out.println( "####\n" + s2 ); 
     }
 
-
-
-
-
 }
-
-
-
 

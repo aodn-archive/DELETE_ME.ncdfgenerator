@@ -44,6 +44,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 	public void visit(  ExprWKTLiteral expr ) throws Exception
 	{
 		// write( "WKTLiteral:" + expr.value );
+		b.append( "ST_GeomFromText( '" + expr.value + "')" );
 	}
 
 
@@ -52,21 +53,22 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 		String symbol = expr.symbol;
 		String lower = symbol.toLowerCase(); 
 
-
 		if( symbol.equals("nop")) {
-			// emitInfixSqlExpr( "AND", expr );
+			if( expr.children.size() != 1) {
+				// should just about be an unchecked runtime exception
+				throw new CQLException( "nop with more than one child" );
+			}
+			expr.children.get(0).accept(this);
 		}
-
-
-		else if( lower.equals("and")) {
-			emitInfixSqlExpr( "AND", expr );
+		else if( lower.equals("and")
+			|| lower.equals("or")
+			) {
+			emitInfixSqlExpr( symbol, expr );
 		}
 
 		else if( lower.equals("intersects")) {
 			emitFunctionSQLExpr ( "ST_INTERSECTS", expr );
 		}
-
-
 
 		else if(symbol.equals(">=")
 			|| symbol.equals("<=")
