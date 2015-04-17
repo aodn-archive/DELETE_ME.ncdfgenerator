@@ -32,25 +32,28 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 */
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty ;
 
 
 // jackson annotations not recognized...
 
 // https://github.com/FasterXML/jackson-annotations
 
+// http://www.cowtowncoder.com/blog/archives/2011/07/entry_457.html
 
-class CtorPOJO 
+
+
+
+class Simple2 
 {
-   private final int _x, _y;
+   final int x, y;
 
    @JsonCreator
-   public CtorPOJO(@JsonProperty("x") int x, @JsonProperty("y") int y) {
-      _x = x;
-      _y = y;
+   public Simple2(@JsonProperty("x") int x, @JsonProperty("y") int y) {
+      this.x = x;
+      this.y = y;
    }
 }
-
-
 
 class Simple 
 {
@@ -60,12 +63,12 @@ class Simple
 		System.out.println( "my constructor" ); 
 	}
 
-
-//	@XmlElement(required = true)
-//	@JsonProperty("fuck")
     public int x = 1;
     public int y = 2;
 }
+
+
+
 
 
 public class JacksonTest 
@@ -91,10 +94,18 @@ public class JacksonTest
 	public void test02() throws Exception
 	{
 		ObjectMapper xmlMapper = new XmlMapper();
-		CtorPOJO value = xmlMapper.readValue("<?xml version=\"1.0\"?> <CtorPOJO><x>1</x><y>2</y></CtorPOJO>", CtorPOJO.class);
+		Simple2 value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple2><x>1</x><y>2</y></Simple2>", Simple2.class);
 		System.out.println( "**** fuck " + value   );
 	}
 
+
+	@Test
+	public void test03() throws Exception
+	{
+		ObjectMapper xmlMapper = new XmlMapper();
+		Simple2 value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple2 x=\"1\" y=\"2\"/>", Simple2.class);
+		System.out.println( "**** fuck " + value + " y is " + value.y  );
+	}
 
 }	
 
