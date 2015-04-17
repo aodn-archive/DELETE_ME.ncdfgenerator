@@ -113,7 +113,7 @@ class NcdfEncoder
 		String query
 		)  throws Exception
 	{
-		System.out.println( "query " + query  );
+		// System.out.println( "query " + query  );
 
 		// sql stuff
 		PreparedStatement stmt = conn.prepareStatement( query );
@@ -202,6 +202,8 @@ class NcdfEncoder
 					" and data.instance_id = " + Long.toString( instance_id) +
 					" order by " + orderClause +
 					";" ;
+
+				System.out.println( "*****\nsecond query " + query ); 
 
 
 //				populateValues( definition.dimensions, definition.encoders, "SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + orderClause  );
