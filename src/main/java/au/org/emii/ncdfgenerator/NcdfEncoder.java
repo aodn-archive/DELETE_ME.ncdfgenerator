@@ -69,8 +69,8 @@ class NcdfEncoder
 		selectionSql = translate.process( selectionExpr);
 
 		// if we combine both tables, then it's actually simpler, since don't need to process twice
-		// or discriminate which attributes come from which tables.
-		// there's no optimisation penalty since both the initial and instance queries have to hit the big data table
+		// or discriminate about which attributes come from which tables.
+		// And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
 		String query =
 			"select distinct data.instance_id" +
 			" from (" + definition.virtualDataTable + ") as data" +
