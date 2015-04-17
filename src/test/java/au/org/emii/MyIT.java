@@ -54,8 +54,6 @@ public class MyIT {
 	public void anmn_timeseries_IT() throws Exception {
 
 		System.out.println( "**** anmn timeseries ****" );
-		// assertTrue(123 == 123 );
-		// assertTrue(456 == 456 );
 		InputStream config = getClass().getResourceAsStream("/anmn_timeseries.xml");
 
 		String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
@@ -79,8 +77,6 @@ public class MyIT {
 
 		System.out.println( "**** anmn_nrs_ctd_profiles **** " );
 		// exception handling needs to be improved a lot...
-		// assertTrue(123 == 123 );
-		// assertTrue(456 == 456 );
 
 		InputStream config = getClass().getResourceAsStream("/anmn_nrs_ctd_profiles.xml");
 		NcdfEncoder generator = new NcdfEncoderBuilder().create(

@@ -70,16 +70,14 @@ public class ExprParser implements IExprParser
 	{
 		int pos = 0;
 		IExpression expr = parseExpression1( s, pos ); 
-		if( expr == null)
-			return null; 
-
-		// ensure we reached the end
-		pos = expr.getPosition();
-		pos = skipWhite( s, pos); 
-		if( pos == s.length() ) 
-			return expr;	
-
-		throw new CQLException( "failed to parse " + s );
+		if( expr != null) {
+			// ensure we got to the end, with nothing trailing
+			pos = expr.getPosition();
+			pos = skipWhite( s, pos); 
+			if( pos == s.length() ) 
+				return expr;	
+		}
+		throw new CQLException( "failed to parse expression '" + s + "'" );
 	}	
 
 

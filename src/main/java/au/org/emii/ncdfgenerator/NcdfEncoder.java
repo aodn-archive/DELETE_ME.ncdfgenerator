@@ -66,6 +66,9 @@ class NcdfEncoder
 		s.close();
 
 		selectionExpr = exprParser.parseExpression( filterExpr );
+
+		System.out.println( "**** HERE--> " + selectionExpr ); 
+
 		selectionSql = translate.process( selectionExpr);
 
 		// if we combine both tables, then it's actually simpler, since don't need to process twice
