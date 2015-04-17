@@ -55,7 +55,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 
 		if( symbol.equals("nop")) {
 			if( expr.children.size() != 1) {
-				// should just about be an unchecked runtime exception
+				// should almost be an unchecked runtime exception
 				throw new CQLException( "nop with more than one child" );
 			}
 			expr.children.get(0).accept(this);
@@ -67,7 +67,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 		}
 
 		else if( lower.equals("intersects")) {
-			emitFunctionSQLExpr ( "ST_INTERSECTS", expr );
+			emitFunctionSqlExpr ( "ST_INTERSECTS", expr );
 		}
 
 		else if(symbol.equals(">=")
@@ -98,7 +98,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 		}
 	}
 
-	public void emitFunctionSQLExpr( String op, ExprProc expr ) throws Exception
+	public void emitFunctionSqlExpr( String op, ExprProc expr ) throws Exception
 	{
 		// if expansion is done in order we may be ok,....
 
