@@ -81,7 +81,7 @@ public class MyIT {
 		InputStream config = getClass().getResourceAsStream("/anmn_nrs_ctd_profiles.xml");
 		NcdfEncoder generator = new NcdfEncoderBuilder().create(
 			config,
-			" (lt TIME 2013-6-29T00:40:01Z ) ",
+			"  TIME < '2013-6-29T00:40:01Z' ",
 			getConn()
 		);
 
@@ -96,9 +96,8 @@ public class MyIT {
 		InputStream config = getClass().getResourceAsStream("/soop_sst_trajectory.xml");
 		NcdfEncoder generator = new NcdfEncoderBuilder().create(
 			config,
-			 " (and (gt TIME 2013-6-27T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
-			// " (lt TIME 2013-6-29T00:40:01Z ) "
-			, getConn()
+			  "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ",
+			getConn()
 		);
 
 		// can expect a count ...
