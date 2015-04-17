@@ -44,16 +44,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty ;
 
 
 
-class Simple2 
-{
-   final int x, y;
-
-   @JsonCreator
-   public Simple2(@JsonProperty("x") int x, @JsonProperty("y") int y) {
-      this.x = x;
-      this.y = y;
-   }
-}
 
 class Simple 
 {
@@ -67,27 +57,33 @@ class Simple
     public int y = 2;
 }
 
+class Simple2 
+{
+   final int x, y;
 
-
+   @JsonCreator
+   public Simple2(@JsonProperty("x") int x, @JsonProperty("y") int y) {
+      this.x = x;
+      this.y = y;
+   }
+}
 
 
 public class JacksonTest 
 {
 
 	@Before
-	public void merge()
+	public void prepare()
 	{
-
-		System.out.println( "\n@@@@@\n\n Jackson merge" ); 
 	}
-
 
 	@Test
 	public void test01() throws Exception
 	{
 		ObjectMapper xmlMapper = new XmlMapper();
 		Simple value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple><x>1</x><y>2</y></Simple>", Simple.class);
-		System.out.println( "**** fuck " + value   );
+		assertTrue( value != null ); 
+		System.out.println( "**** value " + value   );
 	}
 
 	@Test
@@ -95,16 +91,18 @@ public class JacksonTest
 	{
 		ObjectMapper xmlMapper = new XmlMapper();
 		Simple2 value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple2><x>1</x><y>2</y></Simple2>", Simple2.class);
-		System.out.println( "**** fuck " + value   );
+		assertTrue( value != null ); 
+		System.out.println( "**** value " + value   );
 	}
-
 
 	@Test
 	public void test03() throws Exception
 	{
+		// initialization using xml attributes
 		ObjectMapper xmlMapper = new XmlMapper();
 		Simple2 value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple2 x=\"1\" y=\"2\"/>", Simple2.class);
-		System.out.println( "**** fuck " + value + " y is " + value.y  );
+		assertTrue( value != null ); 
+		System.out.println( "**** value " + value + " y is " + value.y  );
 	}
 
 }	
