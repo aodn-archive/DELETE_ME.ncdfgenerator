@@ -23,14 +23,14 @@ class NcdfEncoder
 	final IExprParser exprParser;
 	final IDialectTranslate translate ;
 	final Connection conn;
-	final ICreateWritable createWritable; // generate a writable
+	final ICreateWritable createWritable;
 	final NcdfDefinition definition ;
 	final String filterExpr;
 
 	final int fetchSize;
 
 	IExpression selectionExpr;
-	String selectionSql; 
+	String selectionSql;
 	ResultSet featureInstancesRS;
 
 	public NcdfEncoder(
@@ -42,7 +42,7 @@ class NcdfEncoder
 		String filterExpr
 	) {
 		this.exprParser = exprParser;
-		this.translate = translate; // sqlEncode.. dialect... specialization
+		this.translate = translate;
 		this.conn = conn;
 		this.createWritable = createWritable;
 		this.definition = definition;
@@ -56,65 +56,125 @@ class NcdfEncoder
 
 	public void prepare() throws Exception
 	{
-
 		System.out.println( "encoder prepare " + filterExpr );
-
-		selectionExpr = exprParser.parseExpression( filterExpr );
-
 		System.out.println( "done parsing expression" );
-
-		// bad, should return expr or throw
-		if(selectionExpr == null) {
-			throw new NcdfGeneratorException( "failed to parse expression" );
-		}
-
 		System.out.println( "setting search_path to " + definition.schema );
 
-		// do not quote search path!. 
+		// do not quote search path!.
 		PreparedStatement s = conn.prepareStatement( "set search_path=" + definition.schema + ", public");
-		// PreparedStatement s = conn.prepareStatement("set search_path='" + schema + "',public");
-		// PreparedStatement s = conn.prepareStatement("set search_path=" + schema + ",public");
 		s.execute();
 		s.close();
 
+		selectionExpr = exprParser.parseExpression( filterExpr );
 		selectionSql = translate.process( selectionExpr);
 
-		// geom, comes from the instance table for timeseries..
+		// ok, so if we combine both tables in a join, then it's actually simpler,
+		// we always have to hit both queries in the initial and instance selection queries
 
-//		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
-
-
-		// TODO  substitute the virtual tables back into this expression... 
-		// actually probably do this first if this is wha
-		// String query = "SELECT distinct data.instance_id FROM (" + definition.virtualDataTable + ") as data left join timeseries t on t.id = data.instance_id where " + selection + ";" ;
-	
-		// ok, so if we're going to combine this stuff, then it's actually simpler, 
-	
-		String query = 
-			"select distinct data.instance_id" + 
+		String query =
+			"select distinct data.instance_id" +
 			" from (" + definition.virtualDataTable + ") as data" +
-			" left join (" + definition.virtualInstanceTable + ") instance" + 
-			" on instance.id = data.instance_id" + 
+			" left join (" + definition.virtualInstanceTable + ") instance" +
+			" on instance.id = data.instance_id" +
 			" where " + selectionSql + ";" ;
-
 
 		System.out.println( "first query " + query  );
 
 		PreparedStatement stmt = conn.prepareStatement( query );
 		stmt.setFetchSize(fetchSize);
 
-		// try ...
 		// change name featureInstancesRSToProcess ?
 		featureInstancesRS = stmt.executeQuery();
+
 		System.out.println( "****** done determining feature instances " );
-		// should determine our target types here
 	}
 
 
+	public NetcdfFileWriteable get() throws Exception
+	{
+		// TODO should just return a readable IStream, client shouldn't care that it's netcdf type.
+
+		try {
+			if( featureInstancesRS.next())
+			{
+				// munge
+				long instanceId = -1234;
+				Object o = featureInstancesRS.getObject(1);
+				Class clazz = o.getClass();
+				if( clazz.equals( Integer.class )) {
+					instanceId = (long)(Integer)o;
+				}
+				else if( clazz.equals( Long.class )) {
+					instanceId = (long)(Long)o;
+				} else {
+					throw new NcdfGeneratorException( "Can't convert intance_id type to integer" );
+				}
+
+				System.out.println( "instanceId is " + instanceId );
+
+				String orderClause = "";
+				for( IDimension dimension : definition.dimensions.values() )
+				{
+					if( !orderClause.equals("")){
+						orderClause += ",";
+					}
+					orderClause += "\"" + dimension.getName() + "\"" ;
+				}
+
+				String query =
+					"select *" +
+					" from (" + definition.virtualDataTable + ") as data" +
+					" left join (" + definition.virtualInstanceTable + ") instance" +
+					" on instance.id = data.instance_id" +
+					" where " + selectionSql +
+					" and data.instance_id = " + Long.toString( instanceId) +
+					" order by " + orderClause +
+					";" ;
+
+				System.out.println( "*****\nsecond query " + query );
+
+				populateValues( query, definition.dimensions, definition.encoders );
+
+				NetcdfFileWriteable writer = createWritable.create();
+
+
+				for ( IDimension dimension: definition.dimensions.values()) {
+					dimension.define(writer);
+				}
+
+				for ( IVariableEncoder encoder: definition.encoders.values()) {
+					encoder.define( writer );
+				}
+				// finish netcdf definition
+				writer.create();
+
+				for ( IVariableEncoder encoder: definition.encoders.values()) {
+					// maybe change name writeValues
+					encoder.finish( writer );
+				}
+				// write the file
+				writer.close();
+
+				// TODO we should be returning a filestream here...
+				// the caller doesn't care that it's a netcdf
+				return writer;
+			}
+			else {
+				// no more netcdfs
+				conn.close();
+				return null;
+			}
+		} catch ( Exception e ) {
+			System.out.println( "Opps " + e.getMessage() );
+			conn.close();
+			return null;
+		}
+	}
+
 	public void populateValues(
+		String query,
 		Map< String, IDimension> dimensions,
-		Map< String, IVariableEncoder> encoders,
-		String query
+		Map< String, IVariableEncoder> encoders
 		)  throws Exception
 	{
 		// System.out.println( "query " + query  );
@@ -155,100 +215,6 @@ class NcdfEncoder
 	}
 
 
-	public NetcdfFileWriteable get() throws Exception
-	{
-		// TODO should just return a readable IStream, client shouldn't care that it's netcdf type.
-
-		try {
-			if( featureInstancesRS.next())
-			{
-				// munge
-				long instanceId = -1234;
-				Object o = featureInstancesRS.getObject(1);
-				Class clazz = o.getClass();
-				if( clazz.equals( Integer.class )) {
-					instanceId = (long)(Integer)o;
-				}
-				else if( clazz.equals( Long.class )) {
-					instanceId = (long)(Long)o;
-				} else {
-					throw new NcdfGeneratorException( "Can't convert intance_id type to integer" );
-				}
-
-				System.out.println( "instanceId is " + instanceId );
-
-				// WEVE already DONE THIS... in the prepare
-				// but we may do rewrite differently....
-//				String selectionSql = translate.process( selectionExpr); // we ought to be caching the specific query ???
-
-//				populateValues( definition.dimensions, definition.encoders,
-//					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instanceId) );
-
-				// is the order clause in sql part of projection or selection ?
-
-				// eg. concat "," $ map (\x -> x.getName) dimensions.values ...
-				String orderClause = "";
-				for( IDimension dimension : definition.dimensions.values() )
-				{
-					if( ! orderClause.equals("")){
-						orderClause += ",";
-					}
-					orderClause += "\"" + dimension.getName() + "\"" ;
-				}
-	
-				String query = 
-					"select *" + 
-					" from (" + definition.virtualDataTable + ") as data" +
-					" left join (" + definition.virtualInstanceTable + ") instance" + 
-					" on instance.id = data.instance_id" + 
-					" where " + selectionSql + 
-					" and data.instance_id = " + Long.toString( instanceId) +
-					" order by " + orderClause +
-					";" ;
-
-				System.out.println( "*****\nsecond query " + query ); 
-
-
-//				populateValues( definition.dimensions, definition.encoders, "SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instanceId = " + Long.toString( instanceId) + " order by " + orderClause  );
-
-
-				populateValues( definition.dimensions, definition.encoders, query  );
-
-				NetcdfFileWriteable writer = createWritable.create();
-
-
-				for ( IDimension dimension: definition.dimensions.values()) {
-					dimension.define(writer);
-				}
-
-				for ( IVariableEncoder encoder: definition.encoders.values()) {
-					encoder.define( writer );
-				}
-				// finish netcdf definition
-				writer.create();
-
-				for ( IVariableEncoder encoder: definition.encoders.values()) {
-					// maybe change name writeValues
-					encoder.finish( writer );
-				}
-				// write the file
-				writer.close();
-
-				// TODO we should be returning a filestream here...
-				// the caller doesn't care that it's a netcdf
-				return writer;
-			}
-			else {
-				// no more netcdfs
-				conn.close();
-				return null;
-			}
-		} catch ( Exception e ) {
-			System.out.println( "Opps " + e.getMessage() );
-			conn.close();
-			return null;
-		}
-	}
 }
 
 
