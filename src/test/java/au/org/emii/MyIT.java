@@ -19,7 +19,7 @@ import java.sql.*;
 
 public class MyIT {
 
-		@Before
+	@Before
 	public void mergeIT() {
 
 		// setup db conn once?
