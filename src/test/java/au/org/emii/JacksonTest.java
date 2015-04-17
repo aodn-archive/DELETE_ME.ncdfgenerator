@@ -27,6 +27,8 @@ import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 
 class Simple {
+
+
     public int x = 1;
     public int y = 2;
 }
@@ -48,7 +50,7 @@ public class JacksonTest
 	{
 
 		ObjectMapper xmlMapper = new XmlMapper();
-		Simple value = xmlMapper.readValue("<Simple><x>1</x><y>2</y></Simple>", Simple.class);
+		Simple value = xmlMapper.readValue("<?xml version=\"1.0\"?> <Simple><x>1</x><y>2</y></Simple>", Simple.class);
 
 
 		System.out.println( "**** fuck " + value   );
