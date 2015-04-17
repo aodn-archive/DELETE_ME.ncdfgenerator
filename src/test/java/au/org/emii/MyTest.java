@@ -24,7 +24,8 @@ public class MyTest {
 	{
 		IExprParser p =	new ExprParser() ;
 		IExpression expr = p.parseExpression( s);
-		assertFalse( expr == null );
+		assertTrue( expr != null );
+
 		// System.out.println( "****" );
 		//expr.accept( new PrettyPrinterVisitor( System.out ) );
 		// System.out.println( "" );
@@ -129,12 +130,16 @@ public class MyTest {
 		// String s = " (and (gt 2013-6-28T00:35:01Z ) ) "; 
 //		String s = " (and ( 2013-6-28T00:35:01Z ) ) "; 
 
-		String s = " and ( 2013-6 ) "; 
-		IExprParser p =	new ExprParser() ;
-		IExpression expr = p.parseExpression( s);
-
-		System.out.println ( "test that should fail result " + expr ); 
-
+		boolean didThrow = false; 
+		try {
+			String s = " and ( 2013-6 ) "; 
+			IExprParser p =	new ExprParser() ;
+			IExpression expr = p.parseExpression( s);
+		} catch( Exception e )
+		{
+			didThrow = true;
+		}
+		assertTrue( didThrow );
 	}	
 
 }
