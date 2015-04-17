@@ -173,10 +173,11 @@ class NcdfEncoder
 
 				System.out.println( "instance_id is " + instance_id );
 
+				// WEVE" already DONE THIS... in the prepare
 				String selection = translate.process( selectionExpr); // we ought to be caching the specific query ???
 
-				populateValues( definition.dimensions, definition.encoders,
-					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instance_id) );
+//				populateValues( definition.dimensions, definition.encoders,
+//					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instance_id) );
 
 
 				// is the order clause in sql part of projection or selection ?
@@ -191,8 +192,22 @@ class NcdfEncoder
 					orderClause += "\"" + dimension.getName() + "\"" ;
 				}
 
-				populateValues( definition.dimensions, definition.encoders,
-					"SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + orderClause  );
+	
+				String query = 
+					"SELECT *" + 
+					" FROM (" + definition.virtualDataTable + ") as data" +
+					" left join (" + definition.virtualInstanceTable + ") instance" + 
+					" on instance.id = data.instance_id" + 
+					" where " + selection + 
+					" and data.instance_id = " + Long.toString( instance_id) +
+					" order by " + orderClause +
+					";" ;
+
+
+//				populateValues( definition.dimensions, definition.encoders, "SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + orderClause  );
+
+
+				populateValues( definition.dimensions, definition.encoders, query  );
 
 				NetcdfFileWriteable writer = createWritable.create();
 
