@@ -46,7 +46,6 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 
 	public void visit(  ExprWKTLiteral expr ) throws Exception
 	{
-		// write( "WKTLiteral:" + expr.value );
 		b.append( "ST_GeomFromText( '" + expr.value + "', 4326)" );
 	}
 
@@ -80,22 +79,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 		) {
 			emitInfixSqlExpr( symbol, expr );
 		}
-/*		else if(symbol.equals("gt")) {
-			emitInfixSqlExpr( ">", expr );
-		}
-		else if(symbol.equals("lt")) {
-			emitInfixSqlExpr( "<", expr );
-		}
-		else if(symbol.equals("geq")) {
-			emitInfixSqlExpr( ">=", expr );
-		}
 
-		else if( symbol.equals("and")
-			|| symbol.equals("or")
-			) {
-			emitInfixSqlExpr( symbol, expr );
-		}
-*/
 		else {
 			throw new CQLException( "Unrecognized proc expression symbol '" + symbol + "'" );
 		}
@@ -107,9 +91,18 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 
 		b.append(op);
 		b.append('(');
-		expr.children.get(0).accept(this);
-		b.append(',');
-		expr.children.get(1).accept(this);
+
+		boolean first = true;
+		for( IExpression child : expr.children ) {
+			if( first ) {
+				child.accept(this);
+				first = false;
+			}
+			else {
+				b.append(',');
+				child.accept(this);
+			}
+		}
 		b.append(')');
 	}
 
