@@ -37,16 +37,19 @@ class VariableEncoder
 	final ArrayList<IDimension>	dimensions; // change name childDimensions
 
 
-   @JsonCreator
+	@JsonCreator
 	public VariableEncoder(
 		@JsonProperty("name") String variableName,
-
 		@JsonProperty("dimensions") ArrayList< IDimension> dimensions
 	) {
 		this.variableName = variableName;
 		this.dimensions = dimensions;
+
+		System.out.println( "number of dimensions " + dimensions.size() );
 	}
 
+
+	
 }
 
 
@@ -85,7 +88,7 @@ public class Jackson2Test
 	public void test03() throws Exception
 	{
 		ObjectMapper xmlMapper = new XmlMapper();
-		VariableEncoder value = xmlMapper.readValue("<?xml version=\"1.0\"?><VariableEncoder><dimensions> <DimensionImpl name=\"TIME\"/> </dimensions>  </VariableEncoder>", VariableEncoder.class);
+		VariableEncoder value = xmlMapper.readValue("<?xml version=\"1.0\"?><VariableEncoder><dimensions> <DimensionImpl name=\"TIME\"/> <DimensionImpl name=\"SPACE\"/></dimensions>  </VariableEncoder>", VariableEncoder.class);
 		assertTrue( value != null ); 
 		System.out.println( "**** VAR ENCODER " + value   );
 	}
