@@ -12,23 +12,27 @@ import java.util.Properties;
 
 import java.io.InputStream ;
 
+
+
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/*
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector; 
+*/
 
 
 
 
 
-
-class Simple {
-
-
+class Simple 
+{
     public int x = 1;
     public int y = 2;
 }
