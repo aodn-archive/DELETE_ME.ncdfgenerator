@@ -4,18 +4,27 @@ package au.org.emii.ncdfgenerator;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+
+@JsonIgnoreProperties({ "name", "size", "dimension" })
 class DimensionImpl implements IDimension
 {
-	final String name;
-	int size;
-	Dimension dimension;
 
+	 final String name;
+	 int size;
+	 Dimension dimension;
 
-	public DimensionImpl( String name )
+	@JsonCreator
+	public DimensionImpl( @JsonProperty("name") String name )
 	{
 		this.name = name; // required to encode dimension
 		this.size = 0;
+		this.dimension = null;
 	}
 
 	public Dimension getDimension( )  // bad naming
