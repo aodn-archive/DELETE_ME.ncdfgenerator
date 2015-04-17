@@ -60,14 +60,7 @@ public class MyIT {
 		// String cql = " TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
 
 
-		NcdfEncoder generator = new NcdfEncoderBuilder().create(
-			config,
-				cql,
-			 //" (and (gt TIME 2013-6-28T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
-			// " (lt TIME 2013-6-29T00:40:01Z ) "
-			 getConn()
-		);
-
+		NcdfEncoder generator = new NcdfEncoderBuilder().create( config, cql, getConn());
 		streamData( generator );
 		System.out.println( "finished test" );
 	}
@@ -79,11 +72,8 @@ public class MyIT {
 		// exception handling needs to be improved a lot...
 
 		InputStream config = getClass().getResourceAsStream("/anmn_nrs_ctd_profiles.xml");
-		NcdfEncoder generator = new NcdfEncoderBuilder().create(
-			config,
-			"  TIME < '2013-6-29T00:40:01Z' ",
-			getConn()
-		);
+		String cql = "TIME < '2013-6-29T00:40:01Z' ";
+		NcdfEncoder generator = new NcdfEncoderBuilder().create( config, cql, getConn());
 
 		streamData( generator );
 		System.out.println( "finished test" );
@@ -94,13 +84,10 @@ public class MyIT {
 
 		System.out.println( "**** sst trajectory ****" );
 		InputStream config = getClass().getResourceAsStream("/soop_sst_trajectory.xml");
-		NcdfEncoder generator = new NcdfEncoderBuilder().create(
-			config,
-			  "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ",
-			getConn()
-		);
 
-		// can expect a count ...
+		String cql = "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ";
+		NcdfEncoder generator = new NcdfEncoderBuilder().create( config, cql, getConn());
+
 		streamData( generator );
 		System.out.println( "finished test" );
 	}
