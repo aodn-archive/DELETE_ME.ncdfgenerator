@@ -75,7 +75,11 @@ class NcdfEncoder
 
 		String selection = translate.process( selectionExpr);
 
+		// geom, comes from the instance table for timeseries..
+
 		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
+		
+
 		System.out.println( "first query " + query  );
 
 		PreparedStatement stmt = conn.prepareStatement( query );

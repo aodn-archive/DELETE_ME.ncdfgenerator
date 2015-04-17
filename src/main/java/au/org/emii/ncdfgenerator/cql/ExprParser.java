@@ -72,7 +72,8 @@ public class ExprParser implements IExprParser
 		IExpression expr = parseExpression1( s, pos ); 
 		if( expr == null)
 			return null; 
-		// ensure nothing remaining at the end of the string
+
+		// ensure we reached the end
 		pos = expr.getPosition();
 		pos = skipWhite( s, pos); 
 		if( pos == s.length() ) 

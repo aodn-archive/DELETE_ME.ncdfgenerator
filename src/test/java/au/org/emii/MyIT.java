@@ -57,11 +57,17 @@ public class MyIT {
 		// assertTrue(123 == 123 );
 		// assertTrue(456 == 456 );
 		InputStream config = getClass().getResourceAsStream("/anmn_timeseries.xml");
+
+		//String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
+		String cql = " TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
+
+
 		NcdfEncoder generator = new NcdfEncoderBuilder().create(
 			config,
-			 " (and (gt TIME 2013-6-28T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
+				cql,
+			 //" (and (gt TIME 2013-6-28T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
 			// " (lt TIME 2013-6-29T00:40:01Z ) "
-			, getConn()
+			 getConn()
 		);
 
 		streamData( generator );
