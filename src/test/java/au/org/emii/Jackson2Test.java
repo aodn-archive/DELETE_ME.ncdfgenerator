@@ -34,13 +34,14 @@ import au.org.emii.ncdfgenerator.DimensionImpl;
 class VariableEncoder 
 {
 	final String				variableName;
-	final ArrayList<DimensionImpl>	dimensions; // change name childDimensions
+	final ArrayList<IDimension>	dimensions; // change name childDimensions
 
 
    @JsonCreator
 	public VariableEncoder(
 		@JsonProperty("name") String variableName,
-		@JsonProperty("dimensions") ArrayList< DimensionImpl> dimensions
+
+		@JsonProperty("dimensions") ArrayList< IDimension> dimensions
 	) {
 		this.variableName = variableName;
 		this.dimensions = dimensions;
