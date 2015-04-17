@@ -2,8 +2,11 @@
 
 package au.org.emii.ncdfgenerator.cql;
 
+
 import java.lang.StringBuilder; 
 import java.text.SimpleDateFormat;
+
+import au.org.emii.ncdfgenerator.cql.CQLException;
 
 
 public class PGDialectSelectionGenerator implements IExprVisitor

@@ -30,7 +30,7 @@ public class MyIT {
 		String url = "jdbc:postgresql://115.146.94.132/harvest";   // nectar instance, needs to move to test resources configuration
 		Properties props = new Properties();
 		props.setProperty("user","meteo");
-		props.setProperty("password","meteo");
+		props.setProperty("password","meteo123");
 
 
 		props.setProperty("ssl","true");
@@ -51,6 +51,24 @@ public class MyIT {
 
 
 	@Test
+	public void anmn_timeseries_IT() throws Exception {
+
+		System.out.println( "**** anmn timeseries ****" );
+		// assertTrue(123 == 123 );
+		// assertTrue(456 == 456 );
+		InputStream config = getClass().getResourceAsStream("/anmn_timeseries.xml");
+		NcdfEncoder generator = new NcdfEncoderBuilder().create(
+			config,
+			 " (and (gt TIME 2013-6-28T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
+			// " (lt TIME 2013-6-29T00:40:01Z ) "
+			, getConn()
+		);
+
+		streamData( generator );
+		System.out.println( "finished test" );
+	}
+
+	@Test
 	public void anmn_nrs_ctd_profiles_IT() throws Exception {
 
 		System.out.println( "**** anmn_nrs_ctd_profiles **** " );
@@ -63,24 +81,6 @@ public class MyIT {
 			config,
 			" (lt TIME 2013-6-29T00:40:01Z ) ",
 			getConn()
-		);
-
-		streamData( generator );
-		System.out.println( "finished test" );
-	}
-
-	@Test
-	public void anmn_timeseries_IT() throws Exception {
-
-		System.out.println( "**** anmn timeseries ****" );
-		// assertTrue(123 == 123 );
-		// assertTrue(456 == 456 );
-		InputStream config = getClass().getResourceAsStream("/anmn_timeseries.xml");
-		NcdfEncoder generator = new NcdfEncoderBuilder().create(
-			config,
-			 " (and (gt TIME 2013-6-28T00:35:01Z ) (lt TIME 2013-6-29T00:40:01Z )) "
-			// " (lt TIME 2013-6-29T00:40:01Z ) "
-			, getConn()
 		);
 
 		streamData( generator );

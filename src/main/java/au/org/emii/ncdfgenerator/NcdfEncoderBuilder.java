@@ -32,6 +32,11 @@ public class NcdfEncoderBuilder
 
 	public NcdfEncoder create( InputStream config, String filterExpr, Connection conn ) throws Exception
 	{
+
+		System.out.println( "builder create " );
+
+
+
 		// not sure if the expression parsing shouldn't go in here?
 		// not sure if definition decoding should be done here...
 

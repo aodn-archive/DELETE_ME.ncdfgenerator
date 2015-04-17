@@ -53,7 +53,13 @@ class NcdfEncoder
 
 	public void prepare() throws Exception
 	{
+
+		System.out.println( "encoder prepare " + filterExpr );
+
 		selection_expr = exprParser.parseExpression( filterExpr );
+
+		System.out.println( "done parsing expression" );
+
 		// bad, should return expr or throw
 		if(selection_expr == null) {
 			throw new NcdfGeneratorException( "failed to parse expression" );

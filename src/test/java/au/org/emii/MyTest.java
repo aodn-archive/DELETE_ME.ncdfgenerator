@@ -122,5 +122,20 @@ public class MyTest {
 		System.out.println( "####\n" + s2 ); 
     }
 
+	 @Test
+    public void testParseThatShouldThrow() throws Exception
+	{
+//		String s = " (and (gt TIME 2013-6-28T00:35:01Z ) ) "; 
+		// String s = " (and (gt 2013-6-28T00:35:01Z ) ) "; 
+//		String s = " (and ( 2013-6-28T00:35:01Z ) ) "; 
+
+		String s = " and ( 2013-6 ) "; 
+		IExprParser p =	new ExprParser() ;
+		IExpression expr = p.parseExpression( s);
+
+		System.out.println ( "test that should fail result " + expr ); 
+
+	}	
+
 }
 
