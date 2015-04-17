@@ -47,7 +47,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor
 	public void visit(  ExprWKTLiteral expr ) throws Exception
 	{
 		// write( "WKTLiteral:" + expr.value );
-		b.append( "ST_GeomFromText( '" + expr.value + "')" );
+		b.append( "ST_GeomFromText( '" + expr.value + "', 4326)" );
 	}
 
 

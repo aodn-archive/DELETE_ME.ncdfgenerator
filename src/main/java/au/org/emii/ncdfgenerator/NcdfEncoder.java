@@ -67,7 +67,8 @@ class NcdfEncoder
 
 		System.out.println( "setting search_path to " + definition.schema );
 
-		PreparedStatement s = conn.prepareStatement("set search_path='" + definition.schema + "'");
+		// do not quote search path!. 
+		PreparedStatement s = conn.prepareStatement( "set search_path=" + definition.schema + ", public");
 		// PreparedStatement s = conn.prepareStatement("set search_path='" + schema + "',public");
 		// PreparedStatement s = conn.prepareStatement("set search_path=" + schema + ",public");
 		s.execute();
@@ -78,7 +79,14 @@ class NcdfEncoder
 		// geom, comes from the instance table for timeseries..
 
 		String query = "SELECT distinct data.instance_id  FROM (" + definition.virtualDataTable + ") as data where " + selection + ";" ;
-		
+
+
+		query = "SELECT distinct data.instance_id  FROM ( select ts_id as instance_id, * from measurement ) as data  left join timeseries t on t.id = data.instance_id where " + selection + ";" ;
+
+/*
+SELECT distinct data.instance_id  FROM (select ts_id as instance_id, * from measurement) as data left join timeseries t on t.id = data.instance_id  limit 3
+
+*/		
 
 		System.out.println( "first query " + query  );
 
@@ -88,7 +96,7 @@ class NcdfEncoder
 		// try ...
 		// change name featureInstancesRSToProcess ?
 		featureInstancesRS = stmt.executeQuery();
-		System.out.println( "done determining feature instances " );
+		System.out.println( "****** done determining feature instances " );
 		// should determine our target types here
 	}
 
