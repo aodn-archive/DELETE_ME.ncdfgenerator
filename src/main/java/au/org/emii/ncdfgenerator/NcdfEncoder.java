@@ -28,7 +28,9 @@ class NcdfEncoder
 	final String filterExpr;
 
 	final int fetchSize;
+
 	IExpression selectionExpr;
+	String selectionSql; 
 	ResultSet featureInstancesRS;
 
 	public NcdfEncoder(
@@ -49,6 +51,7 @@ class NcdfEncoder
 		fetchSize = 1000;
 		featureInstancesRS = null;
 		selectionExpr = null;
+		selectionSql = null;
 	}
 
 	public void prepare() throws Exception
@@ -74,7 +77,7 @@ class NcdfEncoder
 		s.execute();
 		s.close();
 
-		String selection = translate.process( selectionExpr);
+		selectionSql = translate.process( selectionExpr);
 
 		// geom, comes from the instance table for timeseries..
 
@@ -88,11 +91,11 @@ class NcdfEncoder
 		// ok, so if we're going to combine this stuff, then it's actually simpler, 
 	
 		String query = 
-			"SELECT distinct data.instance_id" + 
-			" FROM (" + definition.virtualDataTable + ") as data" +
+			"select distinct data.instance_id" + 
+			" from (" + definition.virtualDataTable + ") as data" +
 			" left join (" + definition.virtualInstanceTable + ") instance" + 
 			" on instance.id = data.instance_id" + 
-			" where " + selection + ";" ;
+			" where " + selectionSql + ";" ;
 
 
 		System.out.println( "first query " + query  );
@@ -106,6 +109,7 @@ class NcdfEncoder
 		System.out.println( "****** done determining feature instances " );
 		// should determine our target types here
 	}
+
 
 	public void populateValues(
 		Map< String, IDimension> dimensions,
@@ -159,26 +163,26 @@ class NcdfEncoder
 			if( featureInstancesRS.next())
 			{
 				// munge
-				long instance_id = -1234;
+				long instanceId = -1234;
 				Object o = featureInstancesRS.getObject(1);
 				Class clazz = o.getClass();
 				if( clazz.equals( Integer.class )) {
-					instance_id = (long)(Integer)o;
+					instanceId = (long)(Integer)o;
 				}
 				else if( clazz.equals( Long.class )) {
-					instance_id = (long)(Long)o;
+					instanceId = (long)(Long)o;
 				} else {
 					throw new NcdfGeneratorException( "Can't convert intance_id type to integer" );
 				}
 
-				System.out.println( "instance_id is " + instance_id );
+				System.out.println( "instanceId is " + instanceId );
 
-				// WEVE" already DONE THIS... in the prepare
-				String selection = translate.process( selectionExpr); // we ought to be caching the specific query ???
+				// WEVE already DONE THIS... in the prepare
+				// but we may do rewrite differently....
+//				String selectionSql = translate.process( selectionExpr); // we ought to be caching the specific query ???
 
 //				populateValues( definition.dimensions, definition.encoders,
-//					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instance_id) );
-
+//					"SELECT * FROM (" + definition.virtualInstanceTable + ") as instance where instance.id = " + Long.toString( instanceId) );
 
 				// is the order clause in sql part of projection or selection ?
 
@@ -191,22 +195,21 @@ class NcdfEncoder
 					}
 					orderClause += "\"" + dimension.getName() + "\"" ;
 				}
-
 	
 				String query = 
-					"SELECT *" + 
-					" FROM (" + definition.virtualDataTable + ") as data" +
+					"select *" + 
+					" from (" + definition.virtualDataTable + ") as data" +
 					" left join (" + definition.virtualInstanceTable + ") instance" + 
 					" on instance.id = data.instance_id" + 
-					" where " + selection + 
-					" and data.instance_id = " + Long.toString( instance_id) +
+					" where " + selectionSql + 
+					" and data.instance_id = " + Long.toString( instanceId) +
 					" order by " + orderClause +
 					";" ;
 
 				System.out.println( "*****\nsecond query " + query ); 
 
 
-//				populateValues( definition.dimensions, definition.encoders, "SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + orderClause  );
+//				populateValues( definition.dimensions, definition.encoders, "SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instanceId = " + Long.toString( instanceId) + " order by " + orderClause  );
 
 
 				populateValues( definition.dimensions, definition.encoders, query  );
