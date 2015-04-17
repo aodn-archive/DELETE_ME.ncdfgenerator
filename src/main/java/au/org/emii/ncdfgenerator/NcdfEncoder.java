@@ -163,17 +163,17 @@ class NcdfEncoder
 				// is the order clause in sql part of projection or selection ?
 
 				// eg. concat "," $ map (\x -> x.getName) dimensions.values ...
-				String dimensionVar = "";
+				String dimensionClause = "";
 				for( IDimension dimension : definition.dimensions.values() )
 				{
-					if( ! dimensionVar.equals("")){
-						dimensionVar += ",";
+					if( ! dimensionClause.equals("")){
+						dimensionClause += ",";
 					}
-					dimensionVar += "\"" + dimension.getName() + "\"" ;
+					dimensionClause += "\"" + dimension.getName() + "\"" ;
 				}
 
 				populateValues( definition.dimensions, definition.encoders,
-					"SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + dimensionVar  );
+					"SELECT * FROM (" + definition.virtualDataTable + ") as data where " + selection +  " and data.instance_id = " + Long.toString( instance_id) + " order by " + dimensionClause  );
 
 				NetcdfFileWriteable writer = createWritable.create();
 
