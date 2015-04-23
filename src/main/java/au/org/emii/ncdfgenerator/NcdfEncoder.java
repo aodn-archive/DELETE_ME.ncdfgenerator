@@ -14,13 +14,15 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-import java.util.Map;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 
 import org.w3c.dom.Document;
 
-//       ucar.nc2.NetcdfFile
+// TODO ucar.nc2.NetcdfFile
 import ucar.nc2.NetcdfFileWriteable;
 
 import au.org.emii.ncdfgenerator.INcdfEncoder ;
@@ -64,7 +66,7 @@ class NcdfEncoder implements INcdfEncoder
 	public void prepare() throws Exception
 	{
 		// do not quote search path!.
-		PreparedStatement s = conn.prepareStatement( "set search_path=" + definition.schema + ", public");
+		PreparedStatement s = conn.prepareStatement( "set search_path=" + definition.dataSource.schema + ", public");
 		s.execute();
 		s.close();
 
@@ -76,8 +78,8 @@ class NcdfEncoder implements INcdfEncoder
 		// And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
 		String query =
 			"select distinct data.instance_id" +
-			" from (" + definition.virtualDataTable + ") as data" +
-			" left join (" + definition.virtualInstanceTable + ") instance" +
+			" from (" + definition.dataSource.virtualDataTable + ") as data" +
+			" left join (" + definition.dataSource.virtualInstanceTable + ") instance" +
 			" on instance.id = data.instance_id" +
 			" where " + selectionSql + ";" ;
 
@@ -111,7 +113,7 @@ class NcdfEncoder implements INcdfEncoder
 
 
 				String orderClause = "";
-				for( IDimension dimension : definition.dimensions.values() )
+				for( IDimension dimension : definition.dimensions )
 				{
 					if( !orderClause.equals("")){
 						orderClause += ",";
@@ -121,8 +123,8 @@ class NcdfEncoder implements INcdfEncoder
 
 				String query =
 					"select *" +
-					" from (" + definition.virtualDataTable + ") as data" +
-					" left join (" + definition.virtualInstanceTable + ") instance" +
+					" from (" + definition.dataSource.virtualDataTable + ") as data" +
+					" left join (" + definition.dataSource.virtualInstanceTable + ") instance" +
 					" on instance.id = data.instance_id" +
 					" where " + selectionSql +
 					" and data.instance_id = " + Long.toString( instanceId) +
@@ -133,24 +135,24 @@ class NcdfEncoder implements INcdfEncoder
 				System.out.println( "instanceId is " + instanceId + " " + query);
 
 
-				populateValues( query, definition.dimensions, definition.encoders );
+				populateValues( query, definition.dimensions, definition.variables );
 
 				NetcdfFileWriteable writer = createWritable.create();
 
 
-				for ( IDimension dimension: definition.dimensions.values()) {
+				for ( IDimension dimension: definition.dimensions) {
 					dimension.define(writer);
 				}
 
-				for ( IVariableEncoder encoder: definition.encoders.values()) {
-					encoder.define( writer );
+				for ( IVariableEncoder variable : definition.variables ) {
+					variable.define( writer );
 				}
 				// finish netcdf definition
 				writer.create();
 
-				for ( IVariableEncoder encoder: definition.encoders.values()) {
+				for ( IVariableEncoder variable: definition.variables) {
 					// maybe change name writeValues
-					encoder.finish( writer );
+					variable.finish( writer );
 				}
 				// finish the file
 				writer.close();
@@ -176,9 +178,9 @@ class NcdfEncoder implements INcdfEncoder
 
 	public void populateValues(
 		String query,
-		Map< String, IDimension> dimensions,
-		Map< String, IVariableEncoder> encoders
-		)  throws Exception
+		List< IDimension> dimensions,
+		List< IVariableEncoder> encoders
+		) throws Exception
 	{
 		// sql stuff
 		PreparedStatement stmt = conn.prepareStatement( query );
@@ -189,6 +191,17 @@ class NcdfEncoder implements INcdfEncoder
 		ResultSetMetaData m = rs.getMetaData();
 		int numColumns = m.getColumnCount();
 
+
+		// organize dimensions by name
+		Map< String, IDimension> dimensionsMap = new HashMap< String, IDimension> (); 
+		for( IDimension dimension : dimensions ) 
+			dimensionsMap.put( dimension.getName(), dimension );
+
+		// organize variables by name
+		Map< String, IVariableEncoder> encodersMap = new HashMap< String, IVariableEncoder> (); 
+		for( IVariableEncoder encoder : encoders ) 
+			encodersMap.put( encoder.getName(), encoder );
+
 		// pre-map the encoders by index according to the column name
 		ArrayList< IAddValue> [] processing = (ArrayList< IAddValue> []) new ArrayList [numColumns + 1];
 
@@ -196,11 +209,11 @@ class NcdfEncoder implements INcdfEncoder
 
 			processing[i] = new ArrayList< IAddValue> ();
 
-			IDimension dimension = dimensions.get( m.getColumnName(i));
+			IDimension dimension = dimensionsMap.get( m.getColumnName(i));
 			if( dimension != null)
 				processing[i].add( dimension );
 
-			IAddValue encoder = encoders.get(m.getColumnName(i));
+			IAddValue encoder = encodersMap.get(m.getColumnName(i));
 			if( encoder != null)
 				processing[i].add( encoder );
 		}
