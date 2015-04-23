@@ -11,6 +11,12 @@
   <dimensions>
     <dimension name="TIME"/>
   </dimensions>
+
+  <globalattributes>
+    <attribute name="file_version" value="Level 1 - Quality Controlled Data"/>
+  </globalattributes>
+
+
   <!-- globalattributes>
     <attribute name="toolbox_version" sql="select toolbox_version from timeseries where ..."/> 
     <attribute name="file_version" value="Level 1 - Quality Controlled Data"/>
@@ -58,6 +64,7 @@
         <dimension name="TIME"/>
       </dimensions>
       <attributes>
+
         <attribute name="standard_name" value="'time'"/>
         <attribute name="long_name" value="'time'"/>
         <attribute name="units" value="'days since 1950-01-01 00:00:00 UTC'"/>
@@ -319,4 +326,6 @@
       </attributes>
     </variable>
   </variables>
+
+
 </definition>
