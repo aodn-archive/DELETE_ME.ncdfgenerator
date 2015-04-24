@@ -124,7 +124,7 @@ class NcdfEncoder implements INcdfEncoder
 					" order by " + orderClause +
 					";" ;
 
-				logger.info( "instanceId " + instanceId + ", " + query );
+				logger.debug( "instanceId " + instanceId + ", " + query );
 
 				populateValues( query, definition.dimensions, definition.variables );
 
@@ -224,9 +224,7 @@ class NcdfEncoder implements INcdfEncoder
 		}
 		// should we log here, or allow exceptions to propagate up?
 		catch ( Exception e ) {
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			logger.error( "Problem generating netcdf " + sw.toString() );
+			logger.error( "Problem generating netcdf ", e );
 			conn.close();
 			return null;
 		}
