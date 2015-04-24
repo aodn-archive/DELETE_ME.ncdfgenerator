@@ -4,7 +4,7 @@ Prototype demonstrate end-to-end filter to subset netcdf generation, with stream
 
 TODO
 - sql lookup for global attributes
-- need float and string cql literal types.
+- need string cql literal types.
 - logger
 
 -----
@@ -60,5 +60,6 @@ WHAT'S DONE
 - done order of dimensions and attributes
 - done carry a context when decoding the xml, to perform lookup of dimensions, etc...
 - done index on prod data.
+- done float literal types and tests
 
 
