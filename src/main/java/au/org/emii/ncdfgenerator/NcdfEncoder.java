@@ -222,11 +222,11 @@ class NcdfEncoder implements INcdfEncoder
 				return null;
 			}
 		}
-		// should we log here, or allow exceptions to propagate up?
 		catch ( Exception e ) {
 			logger.error( "Problem generating netcdf ", e );
 			conn.close();
-			return null;
+			// propagate to caller
+			throw e;
 		}
 	}
 
