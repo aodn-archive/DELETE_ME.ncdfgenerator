@@ -22,10 +22,6 @@ public class QueryTest {
 		IExprParser p =	new ExprParser() ;
 		IExpression expr = p.parseExpression( s);
 		assertTrue( expr != null );
-
-		// System.out.println( "****" );
-		//expr.accept( new PrettyPrinterVisitor( System.out ) );
-		// System.out.println( "" );
 		return expr;
 	}
 
@@ -125,7 +121,6 @@ public class QueryTest {
 		IExpression expr = doExprTest( cql );
 		IDialectTranslate dt = new PGDialectTranslate();
 		String sql = dt.process( expr );
-		// System.out.println( sql );
 		// TODO ...
 	}
 }
