@@ -62,6 +62,7 @@ public class PGDialectSelectionGenerator implements IExprVisitor {
             || symbol.equals("<=")
             || symbol.equals("<")
             || symbol.equals(">")
+            || symbol.equals("=")
           ) {
             emitInfixSqlExpr(symbol, expr);
         } else {
