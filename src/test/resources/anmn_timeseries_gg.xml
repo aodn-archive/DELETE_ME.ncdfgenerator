@@ -73,10 +73,10 @@
 	</attribute>
 
     <attribute name="time_coverage_start">
-		<sql>select to_char(time_coverage_start AT TIME ZONE 'UTC', 'YYYY-MM-DD""T""HH24:MI:SSZ') from $instance</sql>
+		<sql>select to_char(min("TIME" AT TIME ZONE 'UTC'), 'YYYY-MM-DD""T""HH24:MI:SSZ') from $data</sql>
 	</attribute>
     <attribute name="time_coverage_end">
-		<sql>select to_char(time_coverage_end AT TIME ZONE 'UTC', 'YYYY-MM-DD""T""HH24:MI:SSZ') from $instance</sql>
+		<sql>select to_char(max("TIME" AT TIME ZONE 'UTC'), 'YYYY-MM-DD""T""HH24:MI:SSZ') from $data</sql>
 	</attribute>
 
     <attribute name="data_centre" value="'eMarine Information Infrastructure (eMII)'"/>
