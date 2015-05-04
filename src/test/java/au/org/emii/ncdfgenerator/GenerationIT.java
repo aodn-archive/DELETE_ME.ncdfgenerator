@@ -31,17 +31,29 @@ import org.w3c.dom.Node;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 
-class MockFormatter implements IOutputFormatter
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+
+class MockOutputterCounter implements IOutputFormatter
 {
+    int count;
     public final void prepare(OutputStream os) {
+        this.count = 0;
     }
 
     public final void write(String filename, InputStream is) {
+        ++count;
     }
 
     public final void finish() {
     }
-}
+
+    public int getCount() {
+        return count;
+    }
+};
+
 
 public class GenerationIT {
 
@@ -54,28 +66,23 @@ public class GenerationIT {
         new File(TMPDIR).mkdirs();
     }
 
-    private NcdfEncoder getEncoder( InputStream config, String filterExpr, Connection conn ) throws Exception {
+    private NcdfEncoder getEncoder( InputStream config, String filterExpr, Connection conn, IOutputFormatter outputGenerator ) throws Exception {
 
         // we can't use the builder for this, becuase config is a stream...
 
         IExprParser parser = new ExprParser();
         IDialectTranslate translate = new PGDialectTranslate();
-        ICreateWritable createWritable = new CreateWritable(TMPDIR); // TODO factor
+        ICreateWritable createWritable = new CreateWritable(TMPDIR);
         IAttributeValueParser attributeValueParser = new AttributeValueParser();
 
         Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
         Node node = document.getFirstChild();
         NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-        // better responsibility separation
-        // change name from outputGenerator to outputFormatter....
-        IOutputFormatter outputGenerator = new MockFormatter();
-
         return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputGenerator, System.out);
-
     }
 
-    public static Connection getConn() throws Exception {
+    private Connection getConn() throws Exception {
         Map<String, String> env = System.getenv();
 
         String opts [] = { "POSTGRES_USER", "POSTGRES_PASS", "POSTGRES_JDBC_URL" } ;
@@ -94,131 +101,124 @@ public class GenerationIT {
         return DriverManager.getConnection(env.get("POSTGRES_JDBC_URL"), props);
     }
 
-
-    private void doTypenameQuery(InputStream config, String cql) throws Exception {
-
-        NcdfEncoder encoder = getEncoder(config, cql, getConn());
-        encoder.write();
+    private InputStream getAnmnConfig() {
+        return getClass().getResourceAsStream("/anmn_ts.xml");
     }
-
-
-    private void doSimpleQuery(String cql) throws Exception {
-        InputStream config = getClass().getResourceAsStream("/anmn_ts.xml");
-        NcdfEncoder encoder = getEncoder(config, cql, getConn());
-        encoder.write();
-    }
+ 
 
 
     @Test
-    public void anmn_nrs_ctd_profiles_IT() throws Exception {
-        String cql = "TIME < '2013-6-29T00:40:01Z' ";
-        String layerConfigDir = "./src/test/resources/"; // TODO URL url = getClass().getResource("/")  ; url.toString()...
+    public void testAnmnNrsCtdProfiles() throws Exception {
+        String layerConfigDir = getClass().getResource("/").getFile();
         String tmpCreationDir = TMPDIR;
         NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
         OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        String cql = "TIME < '2013-6-29T00:40:01Z' ";
         generator.write("anmn_nrs_ctd_profiles", cql, getConn(), os);
     }
 
     @Test
-    public void soop_sst_trajectory_IT() throws Exception {
-
-        InputStream config = getClass().getResourceAsStream("/soop_sst_trajectory.xml");
-        String cql = "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ";
-        doTypenameQuery(config, cql);
-    }
-
-    // test zip streaming using NcdfGenerator
-    @Test
-    public void ncdfGenerator_IT() throws Exception {
-        String layerConfigDir = "./src/test/resources/"; // TODO URL url = getClass().getResource("/")  ; url.toString()...
+    public void testSoopSSTTrajectory() throws Exception {
+        String layerConfigDir = getClass().getResource("/").getFile();
         String tmpCreationDir = TMPDIR;
         NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-
-        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
-
         OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        String cql = "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ";
+        generator.write("soop_sst_trajectory", cql, getConn(), os);
+    }
+
+     @Test
+    public void testAnmnTs() throws Exception {
+        String layerConfigDir = getClass().getResource("/").getFile();
+        String tmpCreationDir = TMPDIR;
+        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
+        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' ";
         generator.write("anmn_ts", cql, getConn(), os);
     }
 
-
     @Test
-    public void cql_with_valid_spatial_temporal_subset() throws Exception {
-        // A
+    public void testCqlWithValidSpatialTemporalSubset() throws Exception {
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
-
-        doSimpleQuery(cql);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter );
+        encoder.write();
+        assertEquals(11, outputter.getCount());
     }
 
-    /* TODO: catch empty downloads */
     @Test
-    public void cql_with_no_data_in_spatial_subset() throws Exception {
-
+    public void testCqlWithNoDataInSpatialSubset() throws Exception {
         String cql = "INTERSECTS(geom,POLYGON((163.7841796875 -15.9970703125,163.7841796875 -3.0771484375,173.8037109375 -3.077148437499999,173.8037109375 -15.9970703125,163.7841796875 -15.9970703125))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
-
-        doSimpleQuery(cql); // TODO check empty or not created etc...
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        encoder.write();
+        assertEquals(0, outputter.getCount());
     }
 
-    /* TODO: catch empty downloads */
     @Test
-    public void cql_with_temporal_extent_out_of_allowed_range() throws Exception {
+    public void testCqlWithTemporalExtentOutOfAllowedRange() throws Exception {
 
         String cql = "INTERSECTS(geom,POLYGON((113.33 -33.09,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '1949-01-01T23:00:00Z' AND TIME <= '1951-01-01T00:00:00Z'";
-
-        doSimpleQuery(cql);  // TODO check empty or not created etc...
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        encoder.write();
+        assertEquals(0, outputter.getCount());
     }
 
-    /* TODO: handle longitude outside of range earlier than PSQL exception */
     @Test(expected = PSQLException.class)
-    public void cql_longitude_outside_allowed_range() throws Exception {
+    public void testCqlLongitudeOutsideAllowedRange() throws Exception {
 
         String cql = "INTERSECTS(geom,POLYGON((182 -33.09,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
 
-        doSimpleQuery(cql);
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
+        encoder.write();
     }
 
-    /* TODO: handle longitude outside of range earlier than PSQL exception */
     @Test(expected = PSQLException.class)
-    public void cql_latitude_outside_allowed_range() throws Exception {
+    public void testCqlLatitudeOutsideAllowedRange() throws Exception {
 
         String cql = "INTERSECTS(geom,POLYGON((113.33 -95,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
 
-        doSimpleQuery(cql);
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
+        encoder.write();
     }
 
     @Test
-    public void cql_with_float_equality_valid() throws Exception {
-
-        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH = 5000.50";
-        doSimpleQuery(cql);
-        // TODO.. check the data... that norminal depth = 5000 etc...
+    public void testCqlWithFloatEqualityValid() throws Exception {
+        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND (NOMINAL_DEPTH = 125.0 OR NOMINAL_DEPTH = 150.0)";
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        encoder.write();
+        assertEquals(2, outputter.getCount());
     }
 
     @Test(expected = CQLException.class)
-    public void cql_with_float_equality_invalid() throws Exception {
-
+    public void testCqlWithFloatEqualityInvalid() throws Exception {
+        // eg. 5000. is not valid cql float
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH = 5000.";
-
-        doSimpleQuery(cql);
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
+        encoder.write();
     }
 
-
-    /* TODO: Implement not parsing for floats and ints */
     @Test
-    public void cql_with_float_not_statement_valid() throws Exception {
-
-        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH <> 5000.50";
-        doSimpleQuery(cql);
+    public void testCqlWithFloatInequalityValid() throws Exception {
+        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH <> 125.0";
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        encoder.write();
+        assertEquals(10, outputter.getCount());
     }
 
-
-    /* TODO: having problems parsing ints (or bytes) */
     @Test
-    public void cql_with_int_equality_valid() throws Exception {
-
-        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND TEMP_quality_control = 5";
-        doSimpleQuery(cql);
-
-        // TODO IMPORTANT !!! NOT WORKING...
+    public void testCqlWithStringEqualityValid() throws Exception {
+        // QC flag is represented as a string in the db, so must quote
+        String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND TEMP_quality_control = '4'";
+        
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        encoder.write();
+        assertEquals(10, outputter.getCount());
+        // TODO, should check that we only include obs with temp_qc = 4 etc, not just that instances are constrained.
     }
 }
 
