@@ -13,6 +13,26 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 
+/*
+    Ok, very interesting,the DataStoreInfo comes from geoserver
+    while the store comes from geotools.
+
+    means we can probably, copy code to instantiate ourselves if necessary.
+
+    the catalog is the catalog of geoserver layers . -- is this issue?
+
+    Could we dummy it ? eg. exactly the same as the layer filter service ?
+
+
+
+
+
+*/
+import org.geoserver.catalog.DataStoreInfo;
+import org.geoserver.catalog.Catalog;
+
+import org.geotools.jdbc.JDBCDataStore;
+
 public class NcdfEncoderBuilder {
     // responsible for assembling the NcdfEncoder
 
@@ -20,7 +40,15 @@ public class NcdfEncoderBuilder {
     private String tmpCreationDir;
     private IOutputFormatter outputFormatter;
 
-    public NcdfEncoderBuilder() {
+    public NcdfEncoderBuilder() throws Exception {
+
+        System.out.println( "**** whoot constructor" );
+
+
+        DataStoreInfo dataStoreInfo = null;
+
+        JDBCDataStore store = (JDBCDataStore)dataStoreInfo.getDataStore(null);
+
     }
 
     public final NcdfEncoder create(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
