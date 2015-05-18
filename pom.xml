@@ -7,6 +7,26 @@
   <packaging>jar</packaging>
   <name>NcdfGenerator artifact (jar)</name>
   <dependencies>
+
+    <dependency>
+       <groupId>org.geotools</groupId>
+       <artifactId>gt-process</artifactId>
+       <version>13.0</version>
+     </dependency>
+     <dependency>
+       <groupId>org.geoserver.extension</groupId>
+       <artifactId>gs-wps-core</artifactId>
+       <version>2.7.0</version>
+     </dependency>
+     <dependency>
+       <groupId>org.geoserver</groupId>
+       <artifactId>gs-main</artifactId>
+       <version>2.7.0</version>
+       <classifier>tests</classifier>
+       <scope>test</scope>
+     </dependency>
+
+
     <dependency>
       <groupId>edu.ucar</groupId>
       <artifactId>netcdf</artifactId>

@@ -40,15 +40,21 @@ public class NcdfEncoderBuilder {
     private String tmpCreationDir;
     private IOutputFormatter outputFormatter;
 
-    public NcdfEncoderBuilder() throws Exception {
+    public NcdfEncoderBuilder() {
 
         System.out.println( "**** whoot constructor" );
 
+        try { 
 
         DataStoreInfo dataStoreInfo = null;
 
         JDBCDataStore store = (JDBCDataStore)dataStoreInfo.getDataStore(null);
 
+        } catch( Exception e )  {
+        
+            System.out.println( "**** Exception thrown " );
+
+        }
     }
 
     public final NcdfEncoder create(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
