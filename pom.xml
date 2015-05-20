@@ -22,7 +22,7 @@
         <groupId>au.org.emii</groupId>
         <artifactId>geoserver</artifactId>
         <version>1.0.0</version>
-        <!-- relativePath>../../../pom.xml</relativePath -->
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
 
@@ -36,19 +36,33 @@
        <version>13.0</version>
      </dependency -->
 
-     <dependency>
-       <groupId>org.geoserver.extension</groupId>
-       <artifactId>gs-wps-core</artifactId>
-        <version>${geoserver.version}</version>
-       <!--version>2.7.0</version-->
+    <!-- org.geoserver.extension:gs-wps-core --> 
 
-       <scope>provided</scope>
-     </dependency>
 
-     <dependency>
+<!-- why would it try to download it? because the name is not correct, and so it doesn't pick up it's provided 
+
+    it's built wiht a profile, i wonder if that's the issue
+-->
+
+        <dependency>
+           <!--groupId>org.geoserver.extension</groupId-->
+           <!--groupId>org.geoserver</groupId-->
+           <!--groupId>org.geoserver.wps</groupId -->
+           <!--groupId>org.geoserver.extension.wps</groupId-->
+           <!--groupId>org.geoserver</groupId -->
+            <!--groupId>org.geoserver.web</groupId-->
+            <groupId>org.geoserver.extension</groupId>
+           <artifactId>gs-wps-core</artifactId>
+            <version>${geoserver.version}</version>
+
+            <scope>provided</scope>
+            <type>jar</type>
+            <!-- issue that it's a different classifier -->
+       </dependency>
+
+     <!--dependency>
        <groupId>org.geoserver</groupId>
        <artifactId>gs-main</artifactId>
-       <!--version>2.7.0</version -->
         <version>${geoserver.version}</version>
        <scope>provided</scope>
      </dependency>
@@ -58,7 +72,7 @@
         <artifactId>gs-web-core</artifactId>
         <version>${geoserver.version}</version>
        <scope>provided</scope>
-    </dependency>
+    </dependency -->
 
 
 
@@ -76,6 +90,7 @@
       <version>9.4-1201-jdbc41</version>
     </dependency>
     <dependency>
+        <!-- should we coordinate versioning across modules at top level pom? -->
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
