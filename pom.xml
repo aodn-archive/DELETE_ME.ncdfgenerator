@@ -1,81 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <!--modelVersion>4.0.0</modelVersion-->
-  <!-- groupId>au.org.emii</groupId -->
-  <!--artifactId>ncdfoutputprocess</artifactId-->
-  <!-- version>1.0.0-SNAPSHOT</version -->
-  <!-- packaging>jar</packaging -->
-  <!-- name>NcdfGenerator artifact (jar)</name -->
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>au.org.emii.wps</groupId>
   <artifactId>netcdf-output</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-    <!-- properties>
-        <geoserver.version>2.7.0</geoserver.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.resources.sourceEncoding>${project.build.sourceEncoding}</project.resources.sourceEncoding>
-    </properties -->
-
     <parent>
         <groupId>au.org.emii</groupId>
         <artifactId>geoserver</artifactId>
         <version>1.0.0</version>
-        <!--relativePath>../../pom.xml</relativePath -->
     </parent>
-
-
 
   <dependencies>
 
-        <!-- should remove this... as version should track as a transitive dependency -->
-    <!--dependency>
-       <groupId>org.geotools</groupId>
-       <artifactId>gt-process</artifactId>
-       <version>13.0</version>
-     </dependency -->
-
-    <!-- org.geoserver.extension:gs-wps-core --> 
-
-
-<!-- why would it try to download it? because the name is not correct, and so it doesn't pick up it's provided 
-
-    it's built wiht a profile, i wonder if that's the issue
--->
-
         <dependency>
-           <!--groupId>org.geoserver.extension</groupId-->
-           <!--groupId>org.geoserver</groupId-->
-           <!--groupId>org.geoserver.wps</groupId -->
-           <!--groupId>org.geoserver.extension.wps</groupId-->
-           <!--groupId>org.geoserver</groupId -->
-            <!--groupId>org.geoserver.web</groupId-->
             <groupId>org.geoserver.extension</groupId>
            <artifactId>gs-wps-core</artifactId>
             <version>${geoserver.version}</version>
-
             <scope>provided</scope>
-            <type>jar</type>
-            <!-- issue that it's a different classifier -->
        </dependency>
-
-     <!--dependency>
-       <groupId>org.geoserver</groupId>
-       <artifactId>gs-main</artifactId>
-        <version>${geoserver.version}</version>
-       <scope>provided</scope>
-     </dependency>
-
-    <dependency>
-        <groupId>org.geoserver.web</groupId>
-        <artifactId>gs-web-core</artifactId>
-        <version>${geoserver.version}</version>
-       <scope>provided</scope>
-    </dependency -->
-
-
-
 
     <!-- do we really need to specify all the dependency versions here? -->
 
