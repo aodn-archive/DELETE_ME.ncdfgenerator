@@ -6,12 +6,32 @@
   <artifactId>netcdf-output</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
+    
+    <!--relativePath>../../pom.xml</relativePath-->
     <parent>
         <groupId>au.org.emii</groupId>
         <artifactId>geoserver</artifactId>
         <version>1.0.0</version>
-        <!--relativePath>../../pom.xml</relativePath-->
     </parent>
+
+    <!--parent>
+        <groupId>au.org.emii</groupId>
+        <artifactId>geoserver</artifactId>
+        <version>1.0.0</version>
+    </parent-->
+
+ 
+
+    <!--parent>
+        <groupId>org.geoserver</groupId>
+        <artifactId>geoserver</artifactId>
+        <version>2.7.0</version>
+        <relativePath>../geoserver/src</relativePath>
+    </parent>
+
+     <properties>
+        <geoserver.version>2.7.0</geoserver.version>
+    </properties -->
 
   <dependencies>
 
@@ -28,12 +48,30 @@
       <groupId>edu.ucar</groupId>
       <artifactId>netcdf</artifactId>
       <version>4.3.22</version>
+        <!-- blows up tomcat -->
+        <exclusions>
+            <exclusion> <!-- declare the exclusion here -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            </exclusion>
+        </exclusions> 
     </dependency>
-    <dependency>
+
+    <!--dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.4-1201-jdbc41</version>
+        <version>9.4-1201-jdbc41</version>  
+        <scope>runtime</scope>
+    </dependency -->
+
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+      <version>8.4-701.jdbc3</version>
     </dependency>
+
+
     <dependency>
         <!-- should we coordinate versioning across modules at top level pom? -->
       <groupId>junit</groupId>
@@ -42,26 +80,22 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.7.12</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
+    </dependency -->
+
+    <!--dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
-    </dependency>
+    </dependency -->
 
   </dependencies>
   <repositories>
