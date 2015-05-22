@@ -23,15 +23,77 @@ import org.geoserver.wps.resource.WPSResourceManager;
 
 import au.org.emii.ncdfgenerator.NcdfGenerator;
 
+
+// import org.geoserver.catalog.LayerInfoProperties;
+import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.DataStoreInfo;
+import org.geoserver.catalog.NamespaceInfo;
+
+import org.geotools.feature.NameImpl;
+
+import org.geotools.jdbc.JDBCDataStore;
+import org.geotools.jdbc.VirtualTable;
+
+
+
+
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
 public class NetcdfOutputProcess implements GeoServerProcess {
 
     private WPSResourceManager resourceManager;
     private String workingDir;
 
-    public NetcdfOutputProcess(WPSResourceManager resourceManager) {
+
+    // there's both a catalog and a service that are injected ...
+
+    /// private ServletContext context;
+
+    ///////////////////
+    private Catalog catalog;
+/*
+    public void setCatalog(Catalog catalog) {
+
+        System.out.println( "\n******* NetcdfOutputProcess **** setCatalog " + catalog ) ;
+
+        this.catalog = catalog;
+    }
+
+    public Catalog getCatalog() {
+        return catalog;
+    }
+*/
+    ///////////////////
+
+
+    private LayerInfo getLayerInfo(String workspaceName, String layerName) {
+        //return LayerInfoProperties.getLayer(getCatalog(), workspace, layer);
+
+
+         if (workspaceName != null) {
+            NamespaceInfo ns = catalog.getNamespaceByPrefix(workspaceName);
+            if (ns == null) {
+                throw new RuntimeException("Could not find workspace " + workspaceName);
+            }
+            String nsURI = ns.getURI();
+
+            return catalog.getLayerByName(new NameImpl(nsURI, layerName));
+
+        }
+
+        // return LayerInfoProperties.getLayer(catalog, workspace, layer);
+        return null;
+    }
+
+
+    public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog ) {
+
+        System.out.println( "\n******* NetcdfOutputProcess constructor 4 " + catalog ) ;
+
         this.resourceManager = resourceManager;
         this.workingDir = getWorkingDir(resourceManager);
+
+        this.catalog = catalog; 
     }
 
     @DescribeResult(name="result", description="Zipped netcdf files", meta={"mimeTypes=application/zip"})
@@ -43,6 +105,27 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         String cqlFilter
     ) throws ProcessException {
         try {
+
+            String workspaceName = "x" ; 
+            String layerName = "y"; 
+
+            // the layer type ...
+            // the filter extension uses an existing wms layer... but we want a wps layer...
+//            LayerInfo layerInfo = getLayerInfo( "x", "y");
+
+
+            DataStoreInfo a = catalog.getDataStoreByName( workspaceName, getLayerInfo(workspaceName, layerName).getResource().getStore().getName());
+ 
+
+            DataStoreInfo dataStoreInfo = null; 
+            JDBCDataStore store = (JDBCDataStore)dataStoreInfo.getDataStore(null);
+
+
+
+
+            //////////////////////
+
+
             _writeTemplateToWorkingDir(typeName);
 
             // Use WPS resource manager to create temporary file so it gets cleaned up
@@ -81,6 +164,10 @@ public class NetcdfOutputProcess implements GeoServerProcess {
    }
 
    public Connection getConnection() throws SQLException, ClassNotFoundException {
+
+
+        System.out.println( "\n******* NetcdfOutputProcess getConnection() " ) ;
+
        Class.forName("org.postgresql.Driver");
        String url = "jdbc:postgresql://localhost/harvest";
        Properties props = new Properties();
