@@ -65,7 +65,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 */
     ///////////////////
 
-
+/*
     private LayerInfo getLayerInfo(String workspaceName, String layerName) {
         //return LayerInfoProperties.getLayer(getCatalog(), workspace, layer);
 
@@ -84,7 +84,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         // return LayerInfoProperties.getLayer(catalog, workspace, layer);
         return null;
     }
-
+*/
 
     public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog ) {
 
@@ -106,21 +106,34 @@ public class NetcdfOutputProcess implements GeoServerProcess {
     ) throws ProcessException {
         try {
 
+/*
             String workspaceName = "x" ; 
             String layerName = "y"; 
-
+*/
             // the layer type ...
             // the filter extension uses an existing wms layer... but we want a wps layer...
 //            LayerInfo layerInfo = getLayerInfo( "x", "y");
 
-
-            DataStoreInfo a = catalog.getDataStoreByName( workspaceName, getLayerInfo(workspaceName, layerName).getResource().getStore().getName());
- 
-
+/*
+            DataStoreInfo a = catalog.getDataStoreByName( workspaceName, 
+                getLayerInfo(workspaceName, layerName).getResource().getStore().getName());
             DataStoreInfo dataStoreInfo = null; 
             JDBCDataStore store = (JDBCDataStore)dataStoreInfo.getDataStore(null);
 
+            22 May 14:16:12 INFO [org.geoserver] - Loaded store 'JNDI_anmn_ts', enabled
+            22 May 14:16:12 INFO [org.geoserver] - Loaded data store 'JNDI_anmn_ts'
+            22 May 14:16:12 INFO [org.geoserver] - Loaded feature type 'anmn_ts_timeseries_map', enabled
+            22 May 14:16:12 INFO [org.geoserver] - Loaded feature type 'JNDI_anmn_ts'
 
+*/
+
+            // returns null if missing...
+            DataStoreInfo dsinfo = catalog.getDataStoreByName( "imos", "anmn_ts");
+            System.out.println( "\n******* NetcdfOutputProcess dsInfo " + dsinfo ) ;
+
+
+            dsinfo = catalog.getDataStoreByName( "imos", "JNDI_anmn_ts");
+            System.out.println( "\n******* NetcdfOutputProcess dsInfo " + dsinfo ) ;
 
 
             //////////////////////
