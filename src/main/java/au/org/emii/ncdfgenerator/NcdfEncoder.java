@@ -63,6 +63,10 @@ class NcdfEncoder {
         InputStream is = null;
 
         try {
+
+            System.out.println( "* here NcdfEncoder"); 
+ 
+
             DataSource dataSource = definition.getDataSource();
 
             // do not quote search path!.
@@ -300,7 +304,7 @@ class NcdfEncoder {
         // process result set rows
         while (rs.next()) {
 
-            if(count % 1000 == 0) { 
+            if(count++ % 1000 == 0) { 
                 System.out.println( " count " + count ); 
             }
 

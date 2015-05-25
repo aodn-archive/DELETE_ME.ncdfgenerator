@@ -105,6 +105,10 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         @DescribeParameter(name="cqlFilter", description="CQL Filter to apply")
         String cqlFilter
     ) throws ProcessException {
+
+        Transaction t  = null;
+        Connection conn1 = null;
+
         try {
 
 /*
@@ -142,12 +146,12 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             System.out.println( "\n******* store " + store ) ;
 
 
-            Transaction t = new DefaultTransaction("handle");
+            t = new DefaultTransaction("handle");
             System.out.println( "\n******* transaction " + store ) ;
 
 
             // returns a conn ProxyConnection[PooledConnection[org.postgresql.jdbc3.Jdbc3Connection@1d002268]]
-            Connection conn1 = store.getConnection( t ); 
+            conn1 = store.getConnection( t ); 
             System.out.println( "\n******* conn " + conn1 ) ;
 
 
@@ -177,10 +181,21 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
         } catch (Exception e) {
 
-
             System.out.println( "\n my exception " + e.getMessage()  );
 
             throw new ProcessException(e);
+        }
+        finally { 
+            // these can throw ??
+            try { 
+                if( t != null) 
+                    t.close(); // throws IOException
+            } catch( IOException e ) { } 
+
+            try { 
+                if( conn1 != null) 
+                    conn1.close(); // throws SQLException
+            } catch( SQLException e ) { } 
         }
     }
 
