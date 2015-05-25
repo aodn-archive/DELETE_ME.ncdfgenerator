@@ -35,7 +35,8 @@ import org.geotools.feature.NameImpl;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.VirtualTable;
 
-
+import org.geotools.data.Transaction;
+import org.geotools.data.DefaultTransaction;
 
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
@@ -127,13 +128,33 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
 */
 
-            // returns null if missing...
-            DataStoreInfo dsinfo = catalog.getDataStoreByName( "imos", "anmn_ts");
+            /*
+                Need to understand 
+                    - what the geotools transaction class is doing.
+                    - whether the schema is set  
+                    - what all the Connection wrapping classes do . 
+            */
+            DataStoreInfo dsinfo = catalog.getDataStoreByName( "imos", "JNDI_anmn_ts");
             System.out.println( "\n******* NetcdfOutputProcess dsInfo " + dsinfo ) ;
 
 
-            dsinfo = catalog.getDataStoreByName( "imos", "JNDI_anmn_ts");
-            System.out.println( "\n******* NetcdfOutputProcess dsInfo " + dsinfo ) ;
+            JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
+            System.out.println( "\n******* store " + store ) ;
+
+
+            Transaction t = new DefaultTransaction("handle");
+            System.out.println( "\n******* transaction " + store ) ;
+
+
+            // returns a conn ProxyConnection[PooledConnection[org.postgresql.jdbc3.Jdbc3Connection@1d002268]]
+            Connection conn1 = store.getConnection( t ); 
+            System.out.println( "\n******* conn " + conn1 ) ;
+
+
+            // is the schema set in the connection?  it should be...
+
+            // createConnection() is protected ... 
+            // Connection conn1 = store.createConnection(); 
 
 
             //////////////////////
@@ -145,15 +166,20 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             // when execution is complete
             File output = resourceManager.getTemporaryResource("zip").file();
 
-            try (Connection conn = getConnection()) {
+//            try (Connection conn = getConnection()) {
                 NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
-                generator.write(typeName, cqlFilter, conn, new FileOutputStream(output));
-            }
+                generator.write(typeName, cqlFilter, conn1, new FileOutputStream(output));
+ //           }
 
             //Perhaps change ncdfgenerator to return an input stream then 
             //could use StreamRawData (only want to create a file once!)
             return new FileRawData(output, "application/zip", "zip");
+
         } catch (Exception e) {
+
+
+            System.out.println( "\n my exception " + e.getMessage()  );
+
             throw new ProcessException(e);
         }
     }
