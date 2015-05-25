@@ -115,6 +115,7 @@ class NcdfEncoder {
                     + ";";
 
                 logger.debug("instanceId " + instanceId + ", " + query);
+                System.out.println( " instance id " + instanceId  ) ; 
 
                 populateValues(query, definition.getDimensions(), definition.getVariables());
 
@@ -292,8 +293,14 @@ class NcdfEncoder {
             }
         }
 
+        int count = 0;
         // process result set rows
         while (rs.next()) {
+
+            if(count % 1000 == 0) { 
+                System.out.println( " count " + count ); 
+            }
+
             for (int i = 1; i <= numColumns; ++i) {
                 for (IAddValue p : processing[i]) {
                     p.addValueToBuffer(rs.getObject(i));
