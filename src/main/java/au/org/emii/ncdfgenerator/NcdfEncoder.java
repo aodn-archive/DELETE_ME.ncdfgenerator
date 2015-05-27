@@ -58,44 +58,61 @@ public class NcdfEncoder {
         fetchSize = 10000;
     }
 
+
+// pass in the os ? 
+
+    public void prepare() throws Exception
+    {
+
+        System.out.println( "* here NcdfEncoder prepare"); 
+
+
+        DataSource dataSource = definition.getDataSource();
+
+        // do not quote search path!.
+        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
+        pathStmt.execute();
+        pathStmt.close();
+
+        //Batch results set
+        conn.setAutoCommit(false);
+
+        IExpression selectionExpr = exprParser.parseExpression(filterExpr);
+        String selectionClause = translate.process(selectionExpr);
+
+        // if we combine both tables, then it's actually simpler, since don't need to process twice
+        // or discriminate about which attributes come from which tables.
+        // And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
+        String instanceQuery =
+            "select distinct data.instance_id"
+            + " from (" + dataSource.getVirtualDataTable() + ") as data"
+            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " on instance.id = data.instance_id"
+            + " where " + selectionClause
+            + ";";
+
+        PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
+        featuresStmt.setFetchSize(fetchSize);
+
+        // change name featureInstancesRSToProcess ?
+        ResultSet featureInstancesRS = featuresStmt.executeQuery();
+
+    }
+
+
+    public boolean writeNext( IOutputFormatter outputFormatter )
+    {
+        return false;
+    }
+
+
+ 
     public void write() throws Exception {
 
+/*
         InputStream is = null;
 
         try {
-
-            System.out.println( "* here NcdfEncoder"); 
- 
-
-            DataSource dataSource = definition.getDataSource();
-
-            // do not quote search path!.
-            PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
-            pathStmt.execute();
-            pathStmt.close();
-
-            //Batch results set
-            conn.setAutoCommit(false);
-
-            IExpression selectionExpr = exprParser.parseExpression(filterExpr);
-            String selectionClause = translate.process(selectionExpr);
-
-            // if we combine both tables, then it's actually simpler, since don't need to process twice
-            // or discriminate about which attributes come from which tables.
-            // And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
-            String instanceQuery =
-                "select distinct data.instance_id"
-                + " from (" + dataSource.getVirtualDataTable() + ") as data"
-                + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
-                + " on instance.id = data.instance_id"
-                + " where " + selectionClause
-                + ";";
-
-            PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
-            featuresStmt.setFetchSize(fetchSize);
-
-            // change name featureInstancesRSToProcess ?
-            ResultSet featureInstancesRS = featuresStmt.executeQuery();
 
             // setup output formatter
             outputFormatter.prepare(os);
@@ -203,6 +220,7 @@ public class NcdfEncoder {
 
             outputFormatter.finish();
         }
+*/
     }
 
     private Object evaluateSql(DataSource dataSource, long instanceId, String selectionClause, String orderClause, String sql) throws Exception {

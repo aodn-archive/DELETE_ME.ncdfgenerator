@@ -64,6 +64,9 @@ import java.util.zip.ZipOutputStream;
 import au.org.emii.ncdfgenerator.NcdfEncoder;
 import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 
+import au.org.emii.ncdfgenerator.IOutputFormatter; 
+import au.org.emii.ncdfgenerator.ZipFormatter; 
+
 
 
 /*
@@ -76,24 +79,28 @@ import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 
 
 
-class MySource
+class StreamAdaptorSource
 {
+    NcdfEncoder encoder;
     OutputStream os;
-    private ZipOutputStream zipStream;
+    // private ZipOutputStream zipStream;
+    IOutputFormatter outputFormatter;
 
-    MySource(  )
+    StreamAdaptorSource( NcdfEncoder encoder)
     {   
-        // the netcdf generator should be injected in here,
+        this.encoder = encoder;
         os = null;
-        zipStream = null;
+        outputFormatter = null;
     }
 
-    void prepare( OutputStream os )
+    void prepare( OutputStream os ) //throws Exception 
     {   
         // the zipper can be created here... and passed to the netcdf library
         this.os = os;
-        this.zipStream = new ZipOutputStream(os);
+        // this.zipStream = new ZipOutputStream(os);
         // w = new PrintWriter( os ); // flushes by default with 8192 bytes...
+
+        outputFormatter = new ZipFormatter( os ); 
     }
 
     boolean update()
@@ -103,6 +110,10 @@ class MySource
 
         // VERY IMPORTANT we have to call close() on the stream...
 
+        System.out.println( "update()" ); 
+
+        return encoder.writeNext( outputFormatter );
+
 /*
         // must take care to flush...  
         // if we
@@ -111,21 +122,22 @@ class MySource
 
         w.print( "whoot" );
         w.flush();
-*/
+
         return true;
+*/
     }
 
 /*
     void close()
     {
-        System.out.println( "MySource close called" ); 
+        System.out.println( "StreamAdaptorSource close called" ); 
     }
 */
 }
 
 
 
-class MyStream extends InputStream
+class StreamAdaptor extends InputStream
 {
     class MyByteArrayOutputStream extends ByteArrayOutputStream
     {   
@@ -136,11 +148,11 @@ class MyStream extends InputStream
     }
 
     // System.arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
-    MySource source;
+    StreamAdaptorSource source;
     MyByteArrayOutputStream b;
     int readIdx;
 
-    MyStream( MySource source ) {
+    StreamAdaptor( StreamAdaptorSource source ) {
         System.out.println( "My stream constructor " ) ;
         // source should potentially be something else,
         this.source = source;
@@ -163,7 +175,7 @@ class MyStream extends InputStream
     {
         // call close... on source ?
 
-        System.out.println( "\n@@@@ MyStream close()" ) ;
+        System.out.println( "\n@@@@ StreamAdaptor close()" ) ;
 
         // source.close();
         // source = null;
@@ -377,7 +389,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
 
             NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
-            encoderBuilder.setLayerConfigDir(workingDir);
+            encoderBuilder.setLayerConfigDir(workingDir); // this should be removed...
             encoderBuilder.setTmpCreationDir(workingDir);
 
 //            encoderBuilder.setOutputType(new ZipFormatter());
@@ -388,14 +400,15 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             encoder.write();
 */ 
 
-            // should set these extra things as builder methods ...
+            // should set these args as builder methods ...
+            // or something else
 
             NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn1, null );
-     
 
+            // change name to Adatpr     
+            StreamAdaptorSource mysrc = new StreamAdaptorSource(encoder ) ; 
 
-            MySource mysrc = new MySource( ) ; 
-            InputStream mystream = new MyStream( mysrc ); 
+            InputStream mystream = new StreamAdaptor( mysrc ); 
             return new MyData ( mystream) ; 
 
 
