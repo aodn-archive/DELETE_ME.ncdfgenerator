@@ -28,11 +28,12 @@ public class NcdfEncoder {
     private final ICreateWritable createWritable;
     private final NcdfDefinition definition;
     private final String filterExpr;
-//    private final IOutputFormatter outputFormatter;
 //    private final OutputStream os;
     private static final Logger logger = LoggerFactory.getLogger(NcdfEncoder.class);
     private final IAttributeValueParser attributeValueParser;
     private final int fetchSize;
+
+    private IOutputFormatter outputFormatter;
 
     public NcdfEncoder(
         IExprParser exprParser,
@@ -53,7 +54,8 @@ public class NcdfEncoder {
         this.attributeValueParser = attributeValueParser;
         this.definition = definition;
         this.filterExpr = filterExpr;
-//        this.outputFormatter = outputFormatter;
+
+        this.outputFormatter = null;
  //       this.os = os;
 
         fetchSize = 10000;
@@ -62,10 +64,12 @@ public class NcdfEncoder {
 
 // pass in the os ? 
 
-    public void prepare() throws Exception
+    public void prepare( IOutputFormatter outputFormatter) throws Exception
     {
 
         System.out.println( "* here NcdfEncoder prepare"); 
+
+        this.outputFormatter  = outputFormatter; 
 
 
         DataSource dataSource = definition.getDataSource();
@@ -103,7 +107,8 @@ public class NcdfEncoder {
     }
 
 
-    public boolean writeNext( IOutputFormatter outputFormatter ) throws Exception 
+    // public boolean writeNext( IOutputFormatter outputFormatter ) throws Exception 
+    public boolean writeNext( ) throws Exception 
     {
         return false;
     }

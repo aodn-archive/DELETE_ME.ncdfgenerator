@@ -82,27 +82,29 @@ import au.org.emii.ncdfgenerator.ZipFormatter;
 class StreamAdaptorSource
 {
     NcdfEncoder encoder;
-    OutputStream os;
-    IOutputFormatter outputFormatter;
+    // OutputStream os;
+    // IOutputFormatter outputFormatter;
 
     StreamAdaptorSource( NcdfEncoder encoder)
     {   
         this.encoder = encoder;
-        os = null;
-        outputFormatter = null;
+        // os = null;
+        // outputFormatter = null;
     }
 
     void prepare( OutputStream os ) throws Exception 
     {   
-        this.os = os;
-        outputFormatter = new ZipFormatter( os ); 
-        encoder.prepare();
+        // this.os = os;
+        // outputFormatter = new ZipFormatter( os ); 
+        // why not pass once to the encoder ?
+
+        encoder.prepare( new ZipFormatter( os ) );
     }
 
     boolean update() throws Exception
     {
         System.out.println( "update()" ); 
-        return encoder.writeNext( outputFormatter );
+        return encoder.writeNext();
     }
 
 /*
@@ -369,6 +371,16 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             generator.write(typeName, cqlFilter, conn1, out  );
 */
 
+            /*
+                VERY IMPORTANT. We can actually get rid of the prepare(). By extracting the 
+                MyByteArray thing. and passing it into 
+
+                MyByteArrayStream   a;
+                MYAdaptor( a, source) ; 
+                MyOutputZipper ...
+                // 
+
+            */
 
             NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
             encoderBuilder.setLayerConfigDir(workingDir); // this should be removed...
