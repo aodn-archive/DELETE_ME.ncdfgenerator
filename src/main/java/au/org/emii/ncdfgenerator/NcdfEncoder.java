@@ -44,8 +44,8 @@ public class NcdfEncoder {
         NcdfDefinition definition,
         String filterExpr  ,
         
-        IOutputFormatter outputFormatter, // REMOVE
-        OutputStream os // REMOVE
+        IOutputFormatter outputFormatter
+        // OutputStream os // REMOVE
     ) {
         this.exprParser = exprParser;
         this.translate = translate;

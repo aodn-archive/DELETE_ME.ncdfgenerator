@@ -46,7 +46,7 @@ public class NcdfEncoderBuilder {
 
     }
 
-    public final NcdfEncoder create(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
+    public final NcdfEncoder create(String typename, String filterExpr, Connection conn) throws Exception {
 
         InputStream config = null;
         try {
@@ -61,7 +61,7 @@ public class NcdfEncoderBuilder {
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputFormatter, os);
+            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputFormatter);
         }
         finally {
             if (config != null) {

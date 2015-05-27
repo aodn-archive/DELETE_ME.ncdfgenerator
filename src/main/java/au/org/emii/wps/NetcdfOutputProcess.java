@@ -81,38 +81,24 @@ import au.org.emii.ncdfgenerator.ZipFormatter;
 
 class StreamAdaptorSource
 {
-    NcdfEncoder encoder;
-    // OutputStream os;
-    // IOutputFormatter outputFormatter;
+    final private NcdfEncoder encoder;
 
     StreamAdaptorSource( NcdfEncoder encoder)
     {   
         this.encoder = encoder;
-        // os = null;
-        // outputFormatter = null;
     }
 
     void prepare( OutputStream os ) throws Exception 
     {   
-        // this.os = os;
-        // outputFormatter = new ZipFormatter( os ); 
-        // why not pass once to the encoder ?
-
         encoder.prepare( new ZipFormatter( os ) );
     }
 
+    // change name to writeNext or writeMore...
     boolean update() throws Exception
     {
         System.out.println( "update()" ); 
         return encoder.writeNext();
     }
-
-/*
-    void close()
-    {
-        System.out.println( "StreamAdaptorSource close called" ); 
-    }
-*/
 }
 
 
@@ -121,7 +107,7 @@ class StreamAdaptor extends InputStream
 {
     class MyByteArrayOutputStream extends ByteArrayOutputStream
     {   
-        byte [] internalBuffer()
+        byte [] getInternalBuffer()
         {   
             return buf;
         }
@@ -183,7 +169,7 @@ class StreamAdaptor extends InputStream
                     int remainingSize = b.size() - readIdx; 
                     System.out.println( "recentering "+ remainingSize );
                     byte[] remaining = new byte [remainingSize ];
-                    System.arraycopy( b.internalBuffer(), readIdx, remaining, 0, remainingSize);
+                    System.arraycopy( b.getInternalBuffer(), readIdx, remaining, 0, remainingSize);
                     b.reset();
                     b.write( remaining, 0, remainingSize);
                     readIdx = 0;
@@ -204,7 +190,7 @@ class StreamAdaptor extends InputStream
                 }   
             }   
             // write buf and adjust read position
-            System.arraycopy( b.internalBuffer(), readIdx, dst, off, len );
+            System.arraycopy( b.getInternalBuffer(), readIdx, dst, off, len );
             readIdx += len;
             return len;
         } catch( Exception e ) { 
@@ -394,10 +380,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             encoder.write();
 */ 
 
-            // should set these args as builder methods ...
+            // IMPORTANT -should set these args as builder methods ...
             // or something else
-
-            NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn1, null );
+            NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn1  );
 
             // change name to Adatpr     
             StreamAdaptorSource mysrc = new StreamAdaptorSource(encoder ) ; 
