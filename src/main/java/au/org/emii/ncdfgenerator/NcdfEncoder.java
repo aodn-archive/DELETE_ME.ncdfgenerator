@@ -74,7 +74,7 @@ public class NcdfEncoder {
 
         System.out.println( "* here NcdfEncoder prepare"); 
 
-        this.outputFormatter  = outputFormatter; 
+        this.outputFormatter = outputFormatter; 
 
 
         DataSource dataSource = definition.getDataSource();

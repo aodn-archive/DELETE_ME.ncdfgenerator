@@ -82,10 +82,13 @@ import au.org.emii.ncdfgenerator.ZipFormatter;
 class StreamAdaptorSource
 {
     final private NcdfEncoder encoder;
+    // embed the geotools tx to keep our connection from being cleaned up ....
+    final private Transaction t ; 
 
-    StreamAdaptorSource( NcdfEncoder encoder)
+    StreamAdaptorSource( NcdfEncoder encoder, Transaction t )
     {   
         this.encoder = encoder;
+        this.t = t; 
     }
 
     void prepare( OutputStream os ) throws Exception 
@@ -97,6 +100,9 @@ class StreamAdaptorSource
     boolean update() throws Exception
     {
         System.out.println( "update()" ); 
+
+        // close out the transaction... when finished.
+
         return encoder.writeNext();
     }
 }
@@ -302,9 +308,6 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         String cqlFilter
     ) throws ProcessException {
 
-        Transaction t  = null;
-        Connection conn1 = null;
-
         try {
 
 /*
@@ -342,12 +345,14 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             System.out.println( "\n******* store " + store ) ;
 
 
-            t = new DefaultTransaction("handle");
+            Transaction t = new DefaultTransaction("handle");
+            Connection conn1 = store.getConnection( t ); 
+
+            
             System.out.println( "\n******* transaction " + store ) ;
 
 
             // returns a conn ProxyConnection[PooledConnection[org.postgresql.jdbc3.Jdbc3Connection@1d002268]]
-            conn1 = store.getConnection( t ); 
             System.out.println( "\n******* conn " + conn1 ) ;
 
 
@@ -385,7 +390,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn1  );
 
             // change name to Adatpr     
-            StreamAdaptorSource mysrc = new StreamAdaptorSource(encoder ) ; 
+            StreamAdaptorSource mysrc = new StreamAdaptorSource(encoder, t ) ; 
 
             InputStream mystream = new StreamAdaptor( mysrc ); 
             return new MyData ( mystream) ; 
@@ -398,6 +403,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             throw new ProcessException(e);
         }
         finally { 
+/*
             // these can throw ??
             try { 
                 if( t != null) 
@@ -408,6 +414,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
                 if( conn1 != null) 
                     conn1.close(); // throws SQLException
             } catch( SQLException e ) { } 
+*/
         }
     }
 
