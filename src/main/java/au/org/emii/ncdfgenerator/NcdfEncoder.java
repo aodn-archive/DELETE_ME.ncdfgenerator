@@ -42,9 +42,9 @@ public class NcdfEncoder {
         ICreateWritable createWritable,
         IAttributeValueParser attributeValueParser,
         NcdfDefinition definition,
-        String filterExpr  ,
+        String filterExpr  //,
         
-        IOutputFormatter outputFormatter
+        // IOutputFormatter outputFormatter
         // OutputStream os // REMOVE
     ) {
         this.exprParser = exprParser;
@@ -55,10 +55,10 @@ public class NcdfEncoder {
         this.definition = definition;
         this.filterExpr = filterExpr;
 
-        this.outputFormatter = null;
  //       this.os = os;
 
         fetchSize = 10000;
+        this.outputFormatter = null;
     }
 
 

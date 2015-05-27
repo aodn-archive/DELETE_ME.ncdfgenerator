@@ -38,7 +38,7 @@ public class NcdfEncoderBuilder {
 
     private String layerConfigDir;
     private String tmpCreationDir;
-    private IOutputFormatter outputFormatter;
+    // private IOutputFormatter outputFormatter;
 
     public NcdfEncoderBuilder() {
 
@@ -61,7 +61,7 @@ public class NcdfEncoderBuilder {
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputFormatter);
+            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
         }
         finally {
             if (config != null) {
@@ -79,8 +79,9 @@ public class NcdfEncoderBuilder {
         this.tmpCreationDir = tmpCreationDir;
     }
 
-    public final void setOutputType(IOutputFormatter outputFormatter) {
+/*    public final void setOutputType(IOutputFormatter outputFormatter) {
         this.outputFormatter = outputFormatter;
     }
+*/
 }
 
