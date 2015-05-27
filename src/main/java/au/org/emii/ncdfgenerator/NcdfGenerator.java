@@ -3,6 +3,12 @@ package au.org.emii.ncdfgenerator;
 import java.io.OutputStream;
 import java.sql.Connection;
 
+/*
+    Think we want to get rid of this....
+    
+    and just use the builder to create the NcdfEncoder 
+
+*/
 public class NcdfGenerator {
 
     private final NcdfEncoderBuilder encoderBuilder;

@@ -54,26 +54,178 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;  
 
 
-class MyData implements RawData 
-{
 
-    /**
-     * Returns the mime type of the stream's contents
-     * 
-     * @return
-     */
-    public String getMimeType()
-    {
-        return "application/zip";
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter ;
+
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+
+
+/*
+    VERY IMPORTANT
+        need to be able to abandon everything if user disconnects. 
+
+    threading approach isn't really going to play nice.
+*/
+
+
+
+
+class MySource
+{
+    OutputStream os;
+    private ZipOutputStream zipStream;
+
+    MySource(  )
+    {   
+        // the netcdf generator should be injected in here,
+        os = null;
+        zipStream = null;
     }
 
-    /**
-     * Gives access to the raw data contents. TODO: decide if this one may be called only once, or
-     * if the code should make it possible to extract the stream multiple times
-     * 
-     * @return
-     * @throws FileNotFoundException
-     */
+    void prepare( OutputStream os )
+    {   
+        // the zipper can be created here... and passed to the netcdf library
+        this.os = os;
+        this.zipStream = new ZipOutputStream(os);
+        // w = new PrintWriter( os ); // flushes by default with 8192 bytes...
+    }
+
+    boolean update()
+    {
+        // this means get more data... which requires writing the complete netcdf...  
+        // in one go
+
+        // VERY IMPORTANT we have to call close() on the stream...
+
+/*
+        // must take care to flush...  
+        // if we
+        if( count++ > 10 )
+            return false;
+
+        w.print( "whoot" );
+        w.flush();
+*/
+        return true;
+    }
+
+/*
+    void close()
+    {
+        System.out.println( "MySource close called" ); 
+    }
+*/
+}
+
+
+
+class MyStream extends InputStream
+{
+    class MyByteArrayOutputStream extends ByteArrayOutputStream
+    {   
+        byte [] internalBuffer()
+        {   
+            return buf;
+        }
+    }
+
+    // System.arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
+    MySource source;
+    MyByteArrayOutputStream b;
+    int readIdx;
+
+    MyStream( MySource source ) {
+        System.out.println( "My stream constructor " ) ;
+        // source should potentially be something else,
+        this.source = source;
+        this.b = new MyByteArrayOutputStream();
+        source.prepare( b );
+        readIdx = 0;
+     }
+
+    // Instance Methods
+    public int available() {
+        // hint only
+        // return b.size() - readIdx; 
+
+        System.out.println( "available called " ) ; 
+
+        return 8192;
+    }
+
+    public void close()
+    {
+        // call close... on source ?
+
+        System.out.println( "\n@@@@ MyStream close()" ) ;
+
+        // source.close();
+        // source = null;
+    }
+
+    public int read() {
+        // inefficient. but we rely on sane clients using read(buf,off,len)
+        byte [] buf = new byte [1];
+        if( read( buf, 0, 1) > 0 ) {
+            return buf[ 0];
+        } else {
+            return -1;
+        }
+    }
+
+    public int read(byte[] dst, int off, int len)
+    {   
+        System.out.println( "read() off " + off + " len " + len + " b.size() " + b.size() + " readIdx " + readIdx );
+
+        if( readIdx + len >= b.size() ) { 
+    
+            // maybe clear the ByteArray internal buffer, by discarding what's already been read
+            if( readIdx != 0) {
+                int remainingSize = b.size() - readIdx; 
+                System.out.println( "recentering "+ remainingSize );
+                byte[] remaining = new byte [remainingSize ];
+                System.arraycopy( b.internalBuffer(), readIdx, remaining, 0, remainingSize);
+                b.reset();
+                b.write( remaining, 0, remainingSize);
+                readIdx = 0;
+            }   
+            // read more
+            if( source.update()) { 
+                return read( dst, off, len );
+            } else {
+                // none then adjust len to what remains in the buffer
+                len = b.size() - readIdx;
+                if(len == 0) {
+                    // should call close() here?
+                    System.out.println( "finished... " ); 
+                    // call close here? no, because we have an output stream, and there's  
+                    // nothing to do
+                    return -1; 
+                }   
+            }   
+        }   
+        // write buf and adjust read position
+        System.arraycopy( b.internalBuffer(), readIdx, dst, off, len );
+        readIdx += len;
+        return len;
+    }   
+}
+
+
+
+class MyData implements RawData 
+{
+    InputStream is; 
+
+    MyData ( InputStream is ) 
+    {
+        this.is = is;
+    }
+
+
     public InputStream getInputStream() throws IOException
     {
 
@@ -81,21 +233,19 @@ class MyData implements RawData
 
 
         // InputStream stream = new ByteArrayInputStream( "whoot".getBytes(StandardCharsets.UTF_8));
-        return new ByteArrayInputStream( "whoot".getBytes(StandardCharsets.UTF_8));
+        // return new ByteArrayInputStream( "whoot".getBytes(StandardCharsets.UTF_8));
 
-        // return null;
+        return is;
     }
 
-    /**
-     * Optional field for output raw data, used by WPS to generate a file extension
-     * 
-     * @return
-     */
-    public String getFileExtension()
+    public String getMimeType()
     {
+        return "application/zip";
+    }
+
+    public String getFileExtension() {
         return "zip";
     }
-
 }
 
 
@@ -221,7 +371,10 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
             generator.write(typeName, cqlFilter, conn1, out  );
 */
-            return new MyData () ; 
+
+            MySource mysrc = new MySource( ) ; 
+            InputStream mystream = new MyStream( mysrc ); 
+            return new MyData ( mystream) ; 
 
 
         } catch (Exception e) {
@@ -262,8 +415,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
        }
    }
 
+/*
    public Connection getConnection() throws SQLException, ClassNotFoundException {
-
 
         System.out.println( "\n******* NetcdfOutputProcess getConnection() " ) ;
 
@@ -274,6 +427,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
        props.setProperty("password","anmn_ts");
        return DriverManager.getConnection(url, props);
    }
+*/
 
    private String getWorkingDir(WPSResourceManager resourceManager) {
        try {
