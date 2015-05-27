@@ -47,6 +47,13 @@ import com.gc.iotools.stream.os.OutputStreamToInputStream;
 import org.geoserver.wps.process.RawData;
 
 
+import java.io.ByteArrayOutputStream; 
+
+import java.io.ByteArrayInputStream;
+
+import java.nio.charset.StandardCharsets;  
+
+
 class MyData implements RawData 
 {
 
@@ -57,7 +64,7 @@ class MyData implements RawData
      */
     public String getMimeType()
     {
-        return "xxx";
+        return "application/zip";
     }
 
     /**
@@ -69,7 +76,14 @@ class MyData implements RawData
      */
     public InputStream getInputStream() throws IOException
     {
-        return null;
+
+        System.out.println( "\n@@@@ MyData getInputStream() " ) ;
+
+
+        // InputStream stream = new ByteArrayInputStream( "whoot".getBytes(StandardCharsets.UTF_8));
+        return new ByteArrayInputStream( "whoot".getBytes(StandardCharsets.UTF_8));
+
+        // return null;
     }
 
     /**
@@ -82,50 +96,6 @@ class MyData implements RawData
         return "zip";
     }
 
-}
-
-/*
-// implements or extends 
-class MyStream extends InputStream 
-// class MyStream extenimplements InputStream,    Closeable, AutoCloseable  
-{
-    int     available() { } 
-    // Returns an estimate of the number of bytes that can be read (or skipped over) from this input stream without blocking by the next invocation of a method for this input stream.
-    void    close() { } 
-    // Closes this input stream and releases any system resources associated with the stream.
-    void    mark(int readlimit) { } 
-    // Marks the current position in this input stream.
-    boolean     markSupported() { } 
-
-
-    // Tests if this input stream supports the mark and reset methods.
-    //abstract int    read() { } 
-
-    // Reads the next byte of data from the input stream.
-    int     read(byte[] b) { } 
-    // Reads some number of bytes from the input stream and stores them into the buffer array b.
-    int     read(byte[] b, int off, int len) { } 
-    // Reads up to len bytes of data from the input stream into an array of bytes.
-    void    reset() { } 
-    // Repositions this stream to the position at the time the mark method was last called on this input stream.
-    long    skip(long n) { } 
-    // Skips over and discards n bytes of data from this input stream.
-};
-*/
-
-// public abstract class java.io.InputStream extends java.lang.Object {
-class MyStream extends java.io.InputStream { //extends java.lang.Object {
-  // Instance Methods
-  public int available() { return 1000; } ;
-  public void close() { } ;
-  public synchronized void mark(int readlimit) { } 
-  public boolean markSupported() { return false; } 
-  // public abstract int read() { } 
-  public int read() { return 0; } 
-  public int read(byte[] b) { return 0; } 
-  public int read(byte[] b, int off, int len) { return 0; } 
-  public synchronized void reset() { } 
-  public long skip(long n) { return 0; } 
 }
 
 
@@ -245,52 +215,12 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             conn1 = store.getConnection( t ); 
             System.out.println( "\n******* conn " + conn1 ) ;
 
-
-            // is the schema set in the connection?  it should be...
-
-            // createConnection() is protected ... 
-            // Connection conn1 = store.createConnection(); 
-
-
-            //////////////////////
-
-
-            final OutputStreamToInputStream<Void> out = new OutputStreamToInputStream<Void>() {
-                @Override
-                protected Void doRead(final InputStream istream) throws Exception {
-                      /*
-                       * Read the data from the InputStream "istream" passed as parameter. 
-                       */
-
-                        System.out.println( "doRead " + istream ); 
-
-                       // LibraryClass2.processDataFromInputStream(in);
-                       return null;
-                }
-            };
 /*
-            try {   
-                 LibraryClass1.writeDataToTheOutputStream(out);
-            } finally {
-                 // don't miss the close (or a thread would not terminate correctly).
-                 out.close();
-            }
-*/
             _writeTemplateToWorkingDir(typeName);
 
-            // Use WPS resource manager to create temporary file so it gets cleaned up
-            // when execution is complete
-//            File output = resourceManager.getTemporaryResource("zip").file();
-
-//            try (Connection conn = getConnection()) {
-                NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
-                generator.write(typeName, cqlFilter, conn1, out /*new FileOutputStream(output) */ );
- //           }
-
-            //Perhaps change ncdfgenerator to return an input stream then 
-            //could use StreamRawData (only want to create a file once!)
-//            return new FileRawData(output, "application/zip", "zip");
-
+            NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
+            generator.write(typeName, cqlFilter, conn1, out  );
+*/
             return new MyData () ; 
 
 
