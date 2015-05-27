@@ -36,6 +36,8 @@ public class NcdfEncoder {
     private IOutputFormatter outputFormatter;
 
     private ResultSet featureInstancesRS; 
+    private String selectionClause ; 
+    private String orderClause; 
 
     public NcdfEncoder(
         IExprParser exprParser,
@@ -86,7 +88,7 @@ public class NcdfEncoder {
         conn.setAutoCommit(false);
 
         IExpression selectionExpr = exprParser.parseExpression(filterExpr);
-        String selectionClause = translate.process(selectionExpr);
+        selectionClause = translate.process(selectionExpr);
 
         // if we combine both tables, then it's actually simpler, since don't need to process twice
         // or discriminate about which attributes come from which tables.
@@ -114,7 +116,111 @@ public class NcdfEncoder {
 
     public boolean writeNext( ) throws Exception 
     {
-        return false;
+    
+        System.out.println( " whoot NcdfEncoder.writeNext()" ) ; 
+
+
+        DataSource dataSource = definition.getDataSource();
+
+        boolean result = featureInstancesRS.next();
+        if( !result)
+            return false;
+
+
+
+
+
+        long instanceId = featureInstancesRS.getLong(1);
+
+        orderClause = "";
+        for (IDimension dimension : definition.getDimensions()) {
+            if (!orderClause.equals("")) {
+                orderClause += ",";
+            }
+            orderClause += "\"" + dimension.getName() + "\"";
+        }
+
+        String query =
+            "select *"
+            + " from (" + dataSource.getVirtualDataTable() + ") as data"
+            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " on instance.id = data.instance_id"
+            + " where " + selectionClause
+            + " and data.instance_id = " + Long.toString(instanceId)
+            + " order by " + orderClause
+            + ";";
+
+        logger.debug("instanceId " + instanceId + ", " + query);
+        System.out.println( " instance id " + instanceId  ) ; 
+
+        populateValues(query, definition.getDimensions(), definition.getVariables());
+
+        NetcdfFileWriteable writer = createWritable.create();
+
+        // Write the global attributes
+        for (Attribute attribute : definition.getGlobalAttributes()) {
+            String name = attribute.getName();
+            Object value = null;
+
+            if (attribute.getValue() != null) {
+                value = attributeValueParser.parse(attribute.getValue()).getValue();
+            }
+            else if (attribute.getSql() != null) {
+                value = evaluateSql(dataSource, instanceId, selectionClause, orderClause, attribute.getSql());
+            }
+            else {
+                throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
+            }
+
+            if (value == null) {
+                logger.error("Null attribute value '" + name + "'");
+            }
+            else if (value instanceof Number) {
+                writer.addGlobalAttribute(name, (Number)value);
+            }
+            else if (value instanceof String) {
+                writer.addGlobalAttribute(name, (String)value);
+            }
+            else if (value instanceof Array) {
+                writer.addGlobalAttribute(name, (Array)value);
+            }
+            else {
+                throw new NcdfGeneratorException("Unrecognized attribute type '" + value.getClass().getName() + "'");
+            }
+        }
+
+        // define dimensions
+        for (IDimension dimension : definition.getDimensions()) {
+            dimension.define(writer);
+        }
+
+        // define vars
+        for (IVariable variable : definition.getVariables()) {
+            variable.define(writer);
+        }
+
+        // finish netcdf definition
+        writer.create();
+
+        // write values
+        for (IVariable variable : definition.getVariables()) {
+            // maybe change name writeValues
+            variable.finish(writer);
+        }
+        // finish the file
+        writer.close();
+
+        // get filename
+        Object filename = evaluateSql(dataSource, instanceId, selectionClause, orderClause, definition.getFilenameTemplate().getSql());
+
+        // this is awful...
+        // format the file into the output stream
+        InputStream is = createWritable.getStream();
+        outputFormatter.write((String)filename, is);
+        is.close();
+
+
+        return true ;
     }
 
 
