@@ -83,7 +83,6 @@ class StreamAdaptorSource
 {
     NcdfEncoder encoder;
     OutputStream os;
-    // private ZipOutputStream zipStream;
     IOutputFormatter outputFormatter;
 
     StreamAdaptorSource( NcdfEncoder encoder)
@@ -95,36 +94,14 @@ class StreamAdaptorSource
 
     void prepare( OutputStream os ) //throws Exception 
     {   
-        // the zipper can be created here... and passed to the netcdf library
         this.os = os;
-        // this.zipStream = new ZipOutputStream(os);
-        // w = new PrintWriter( os ); // flushes by default with 8192 bytes...
-
         outputFormatter = new ZipFormatter( os ); 
     }
 
-    boolean update()
+    boolean update() throws Exception
     {
-        // this means get more data... which requires writing the complete netcdf...  
-        // in one go
-
-        // VERY IMPORTANT we have to call close() on the stream...
-
         System.out.println( "update()" ); 
-
         return encoder.writeNext( outputFormatter );
-
-/*
-        // must take care to flush...  
-        // if we
-        if( count++ > 10 )
-            return false;
-
-        w.print( "whoot" );
-        w.flush();
-
-        return true;
-*/
     }
 
 /*
@@ -181,51 +158,59 @@ class StreamAdaptor extends InputStream
         // source = null;
     }
 
-    public int read() {
-        // inefficient. but we rely on sane clients using read(buf,off,len)
-        byte [] buf = new byte [1];
-        if( read( buf, 0, 1) > 0 ) {
-            return buf[ 0];
-        } else {
-            return -1;
+    public int read() throws IOException {
+        try { 
+            // inefficient. but we rely on sane clients using read(buf,off,len)
+            byte [] buf = new byte [1];
+            if( read( buf, 0, 1) > 0 ) {
+                return buf[ 0];
+            } else {
+                return -1;
+            }
+        } catch( Exception e ) {
+            throw new IOException( e ); 
         }
     }
 
-    public int read(byte[] dst, int off, int len)
+    public int read(byte[] dst, int off, int len) throws IOException
     {   
-        System.out.println( "read() off " + off + " len " + len + " b.size() " + b.size() + " readIdx " + readIdx );
+        try { 
+            System.out.println( "read() off " + off + " len " + len + " b.size() " + b.size() + " readIdx " + readIdx );
 
-        if( readIdx + len >= b.size() ) { 
-    
-            // maybe clear the ByteArray internal buffer, by discarding what's already been read
-            if( readIdx != 0) {
-                int remainingSize = b.size() - readIdx; 
-                System.out.println( "recentering "+ remainingSize );
-                byte[] remaining = new byte [remainingSize ];
-                System.arraycopy( b.internalBuffer(), readIdx, remaining, 0, remainingSize);
-                b.reset();
-                b.write( remaining, 0, remainingSize);
-                readIdx = 0;
-            }   
-            // read more
-            if( source.update()) { 
-                return read( dst, off, len );
-            } else {
-                // none then adjust len to what remains in the buffer
-                len = b.size() - readIdx;
-                if(len == 0) {
-                    // should call close() here?
-                    System.out.println( "finished... " ); 
-                    // call close here? no, because we have an output stream, and there's  
-                    // nothing to do
-                    return -1; 
+            if( readIdx + len >= b.size() ) { 
+        
+                // maybe clear the ByteArray internal buffer, by discarding what's already been read
+                if( readIdx != 0) {
+                    int remainingSize = b.size() - readIdx; 
+                    System.out.println( "recentering "+ remainingSize );
+                    byte[] remaining = new byte [remainingSize ];
+                    System.arraycopy( b.internalBuffer(), readIdx, remaining, 0, remainingSize);
+                    b.reset();
+                    b.write( remaining, 0, remainingSize);
+                    readIdx = 0;
+                }   
+                // read more
+                if( source.update()) { 
+                    return read( dst, off, len );
+                } else {
+                    // none then adjust len to what remains in the buffer
+                    len = b.size() - readIdx;
+                    if(len == 0) {
+                        // should call close() here?
+                        System.out.println( "finished... " ); 
+                        // call close here? no, because we have an output stream, and there's  
+                        // nothing to do
+                        return -1; 
+                    }   
                 }   
             }   
-        }   
-        // write buf and adjust read position
-        System.arraycopy( b.internalBuffer(), readIdx, dst, off, len );
-        readIdx += len;
-        return len;
+            // write buf and adjust read position
+            System.arraycopy( b.internalBuffer(), readIdx, dst, off, len );
+            readIdx += len;
+            return len;
+        } catch( Exception e ) { 
+            throw new IOException( e ); 
+        }
     }   
 }
 
@@ -241,7 +226,7 @@ class MyData implements RawData
     }
 
 
-    public InputStream getInputStream() throws IOException
+    public InputStream getInputStream() // throws Exception
     {
 
         System.out.println( "\n@@@@ MyData getInputStream() " ) ;
