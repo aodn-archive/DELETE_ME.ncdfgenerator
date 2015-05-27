@@ -159,7 +159,7 @@ class StreamAdaptor extends InputStream
     }
 
     public int read() throws IOException {
-        try { 
+//        try { 
             // inefficient. but we rely on sane clients using read(buf,off,len)
             byte [] buf = new byte [1];
             if( read( buf, 0, 1) > 0 ) {
@@ -167,9 +167,10 @@ class StreamAdaptor extends InputStream
             } else {
                 return -1;
             }
-        } catch( Exception e ) {
+ /*       } catch( Exception e ) {
             throw new IOException( e ); 
         }
+*/
     }
 
     public int read(byte[] dst, int off, int len) throws IOException
