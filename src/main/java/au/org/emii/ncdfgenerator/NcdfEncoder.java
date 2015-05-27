@@ -98,6 +98,8 @@ public class NcdfEncoder {
         // change name featureInstancesRSToProcess ?
         ResultSet featureInstancesRS = featuresStmt.executeQuery();
 
+        System.out.println( "* here NcdfEncoder prepare done"); 
+
     }
 
 

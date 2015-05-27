@@ -92,10 +92,11 @@ class StreamAdaptorSource
         outputFormatter = null;
     }
 
-    void prepare( OutputStream os ) //throws Exception 
+    void prepare( OutputStream os ) throws Exception 
     {   
         this.os = os;
         outputFormatter = new ZipFormatter( os ); 
+        encoder.prepare();
     }
 
     boolean update() throws Exception
@@ -129,12 +130,12 @@ class StreamAdaptor extends InputStream
     MyByteArrayOutputStream b;
     int readIdx;
 
-    StreamAdaptor( StreamAdaptorSource source ) {
+    StreamAdaptor( StreamAdaptorSource source ) throws Exception {
         System.out.println( "My stream constructor " ) ;
         // source should potentially be something else,
         this.source = source;
         this.b = new MyByteArrayOutputStream();
-        source.prepare( b );
+        source.prepare( b ); // might throw...
         readIdx = 0;
      }
 
@@ -159,18 +160,13 @@ class StreamAdaptor extends InputStream
     }
 
     public int read() throws IOException {
-//        try { 
-            // inefficient. but we rely on sane clients using read(buf,off,len)
-            byte [] buf = new byte [1];
-            if( read( buf, 0, 1) > 0 ) {
-                return buf[ 0];
-            } else {
-                return -1;
-            }
- /*       } catch( Exception e ) {
-            throw new IOException( e ); 
+        // inefficient. but we can rely on sane clients using read(buf,off,len) instead
+        byte [] buf = new byte [1];
+        if( read( buf, 0, 1) > 0 ) {
+            return buf[ 0];
+        } else {
+            return -1;
         }
-*/
     }
 
     public int read(byte[] dst, int off, int len) throws IOException
@@ -366,9 +362,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             conn1 = store.getConnection( t ); 
             System.out.println( "\n******* conn " + conn1 ) ;
 
-/*
-            _writeTemplateToWorkingDir(typeName);
 
+            _writeTemplateToWorkingDir(typeName);
+/*
             NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
             generator.write(typeName, cqlFilter, conn1, out  );
 */
