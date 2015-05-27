@@ -23,6 +23,7 @@ public class ZipFormatter implements IOutputFormatter {
     }
 
     public final void close() throws Exception {
+        // IMPORTANT - i don't think we're actually calling this
         zipStream.close();
     }
 }

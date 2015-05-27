@@ -35,6 +35,8 @@ public class NcdfEncoder {
 
     private IOutputFormatter outputFormatter;
 
+    private ResultSet featureInstancesRS; 
+
     public NcdfEncoder(
         IExprParser exprParser,
         IDialectTranslate translate,
@@ -58,7 +60,8 @@ public class NcdfEncoder {
  //       this.os = os;
 
         fetchSize = 10000;
-        this.outputFormatter = null;
+        outputFormatter = null;
+        featureInstancesRS = null;
     }
 
 
@@ -100,14 +103,15 @@ public class NcdfEncoder {
         featuresStmt.setFetchSize(fetchSize);
 
         // change name featureInstancesRSToProcess ?
-        ResultSet featureInstancesRS = featuresStmt.executeQuery();
+
+
+        featureInstancesRS = featuresStmt.executeQuery();
 
         System.out.println( "* here NcdfEncoder prepare done"); 
 
     }
 
 
-    // public boolean writeNext( IOutputFormatter outputFormatter ) throws Exception 
     public boolean writeNext( ) throws Exception 
     {
         return false;
