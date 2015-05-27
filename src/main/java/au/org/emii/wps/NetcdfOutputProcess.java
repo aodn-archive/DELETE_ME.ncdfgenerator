@@ -40,7 +40,7 @@ import org.geotools.data.DefaultTransaction;
 
 
 
-import com.gc.iotools.stream.os.OutputStreamToInputStream;
+// import com.gc.iotools.stream.os.OutputStreamToInputStream;
 
 
 
@@ -60,6 +60,9 @@ import java.io.PrintWriter ;
 
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import au.org.emii.ncdfgenerator.NcdfEncoder;
+import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 
 
 
@@ -371,6 +374,25 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             NcdfGenerator generator = new NcdfGenerator(workingDir, workingDir);;
             generator.write(typeName, cqlFilter, conn1, out  );
 */
+
+
+            NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
+            encoderBuilder.setLayerConfigDir(workingDir);
+            encoderBuilder.setTmpCreationDir(workingDir);
+
+//            encoderBuilder.setOutputType(new ZipFormatter());
+
+/*    public void write(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
+        try {
+            NcdfEncoder encoder = encoderBuilder.create(typename, filterExpr, conn, os);
+            encoder.write();
+*/ 
+
+            // should set these extra things as builder methods ...
+
+            NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn1, null );
+     
+
 
             MySource mysrc = new MySource( ) ; 
             InputStream mystream = new MyStream( mysrc ); 

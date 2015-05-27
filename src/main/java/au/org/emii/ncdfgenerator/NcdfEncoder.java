@@ -21,7 +21,7 @@ import java.util.Map;
 
 // TODO ucar.nc2.NetcdfFile
 
-class NcdfEncoder {
+public class NcdfEncoder {
     private final IExprParser exprParser;
     private final IDialectTranslate translate;
     private final Connection conn;
