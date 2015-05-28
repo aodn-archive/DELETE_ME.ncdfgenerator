@@ -202,7 +202,7 @@ public class GenerationIT {
 
         NcdfEncoder encoder = new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
         encoder.prepare(outputGenerator);
-        return encoder; 
+        return encoder;
     }
 
     private InputStream getAnmnConfig() {
@@ -233,32 +233,28 @@ public class GenerationIT {
 
     @Test
     public void testAnmnNrsCtdProfiles() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        InputStream config = getClass().getResourceAsStream("/anmn_nrs_ctd_profiles.xml");
         String cql = "TIME < '2013-6-29T00:40:01Z' ";
-        generator.write("anmn_nrs_ctd_profiles", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(config, cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
     public void testSoopSSTTrajectory() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        InputStream config = getClass().getResourceAsStream("/soop_sst_trajectory.xml");
         String cql = "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ";
-        generator.write("soop_sst_trajectory", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(config, cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
     public void testAnmnTs() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' ";
-        generator.write("anmn_ts", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
