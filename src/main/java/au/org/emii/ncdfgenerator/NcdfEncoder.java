@@ -21,18 +21,22 @@ import java.util.Map;
 
 // TODO ucar.nc2.NetcdfFile
 
-class NcdfEncoder {
+public class NcdfEncoder {
     private final IExprParser exprParser;
     private final IDialectTranslate translate;
     private final Connection conn;
     private final ICreateWritable createWritable;
     private final NcdfDefinition definition;
     private final String filterExpr;
-    private final IOutputFormatter outputFormatter;
-    private final OutputStream os;
     private static final Logger logger = LoggerFactory.getLogger(NcdfEncoder.class);
     private final IAttributeValueParser attributeValueParser;
     private final int fetchSize;
+
+    private ResultSet featureInstancesRS;
+    private String selectionClause ;
+    private String orderClause;
+
+    private IOutputFormatter outputFormatter;
 
     public NcdfEncoder(
         IExprParser exprParser,
@@ -41,9 +45,7 @@ class NcdfEncoder {
         ICreateWritable createWritable,
         IAttributeValueParser attributeValueParser,
         NcdfDefinition definition,
-        String filterExpr,
-        IOutputFormatter outputFormatter,
-        OutputStream os
+        String filterExpr
     ) {
         this.exprParser = exprParser;
         this.translate = translate;
@@ -52,154 +54,151 @@ class NcdfEncoder {
         this.attributeValueParser = attributeValueParser;
         this.definition = definition;
         this.filterExpr = filterExpr;
-        this.outputFormatter = outputFormatter;
-        this.os = os;
 
         fetchSize = 10000;
+        outputFormatter = null;
+        featureInstancesRS = null;
     }
 
-    public void write() throws Exception {
 
-        InputStream is = null;
+    public void prepare(IOutputFormatter outputFormatter) throws Exception
+    {
+        this.outputFormatter = outputFormatter;
 
-        try {
-            DataSource dataSource = definition.getDataSource();
+        DataSource dataSource = definition.getDataSource();
 
-            // do not quote search path!.
-            PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
-            pathStmt.execute();
-            pathStmt.close();
+        // do not quote search path!.
+        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
+        pathStmt.execute();
+        pathStmt.close();
 
-            //Batch results set
-            conn.setAutoCommit(false);
+        //Batch results set
+        conn.setAutoCommit(false);
 
-            IExpression selectionExpr = exprParser.parseExpression(filterExpr);
-            String selectionClause = translate.process(selectionExpr);
+        IExpression selectionExpr = exprParser.parseExpression(filterExpr);
+        selectionClause = translate.process(selectionExpr);
 
-            // if we combine both tables, then it's actually simpler, since don't need to process twice
-            // or discriminate about which attributes come from which tables.
-            // And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
-            String instanceQuery =
-                "select distinct data.instance_id"
-                + " from (" + dataSource.getVirtualDataTable() + ") as data"
-                + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
-                + " on instance.id = data.instance_id"
-                + " where " + selectionClause
-                + ";";
+        // if we combine both tables, then it's actually simpler, since don't need to process twice
+        // or discriminate about which attributes come from which tables.
+        // And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
+        String instanceQuery =
+            "select distinct data.instance_id"
+            + " from (" + dataSource.getVirtualDataTable() + ") as data"
+            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " on instance.id = data.instance_id"
+            + " where " + selectionClause
+            + ";";
 
-            PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
-            featuresStmt.setFetchSize(fetchSize);
+        PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
+        featuresStmt.setFetchSize(fetchSize);
 
-            // change name featureInstancesRSToProcess ?
-            ResultSet featureInstancesRS = featuresStmt.executeQuery();
-
-            // setup output formatter
-            outputFormatter.prepare(os);
-
-            while (featureInstancesRS.next()) {
-                long instanceId = featureInstancesRS.getLong(1);
-
-                String orderClause = "";
-                for (IDimension dimension : definition.getDimensions()) {
-                    if (!orderClause.equals("")) {
-                        orderClause += ",";
-                    }
-                    orderClause += "\"" + dimension.getName() + "\"";
-                }
-
-                String query =
-                    "select *"
-                    + " from (" + dataSource.getVirtualDataTable() + ") as data"
-                    + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
-                    + " on instance.id = data.instance_id"
-                    + " where " + selectionClause
-                    + " and data.instance_id = " + Long.toString(instanceId)
-                    + " order by " + orderClause
-                    + ";";
-
-                logger.debug("instanceId " + instanceId + ", " + query);
-                System.out.println( " instance id " + instanceId  ) ; 
-
-                populateValues(query, definition.getDimensions(), definition.getVariables());
-
-                NetcdfFileWriteable writer = createWritable.create();
-
-                // Write the global attributes
-                for (Attribute attribute : definition.getGlobalAttributes()) {
-                    String name = attribute.getName();
-                    Object value = null;
-
-                    if (attribute.getValue() != null) {
-                        value = attributeValueParser.parse(attribute.getValue()).getValue();
-                    }
-                    else if (attribute.getSql() != null) {
-                        value = evaluateSql(dataSource, instanceId, selectionClause, orderClause, attribute.getSql());
-                    }
-                    else {
-                        throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
-                    }
-
-                    if (value == null) {
-                        logger.error("Null attribute value '" + name + "'");
-                    }
-                    else if (value instanceof Number) {
-                        writer.addGlobalAttribute(name, (Number)value);
-                    }
-                    else if (value instanceof String) {
-                        writer.addGlobalAttribute(name, (String)value);
-                    }
-                    else if (value instanceof Array) {
-                        writer.addGlobalAttribute(name, (Array)value);
-                    }
-                    else {
-                        throw new NcdfGeneratorException("Unrecognized attribute type '" + value.getClass().getName() + "'");
-                    }
-                }
-
-                // define dimensions
-                for (IDimension dimension : definition.getDimensions()) {
-                    dimension.define(writer);
-                }
-
-                // define vars
-                for (IVariable variable : definition.getVariables()) {
-                    variable.define(writer);
-                }
-
-                // finish netcdf definition
-                writer.create();
-
-                // write values
-                for (IVariable variable : definition.getVariables()) {
-                    // maybe change name writeValues
-                    variable.finish(writer);
-                }
-                // finish the file
-                writer.close();
-
-                // get filename
-                Object filename = evaluateSql(dataSource, instanceId, selectionClause, orderClause, definition.getFilenameTemplate().getSql());
-
-                // format the file into the output stream
-                is = createWritable.getStream();
-                outputFormatter.write((String)filename, is);
-                is.close();
-            }
-        }
-        catch (Exception e) {
-            logger.error("Problem generating netcdf ", e);
-            // propagate to caller
-            throw e;
-        }
-        finally {
-            conn.close();
-            if (is != null) {
-                is.close();
-            }
-
-            outputFormatter.finish();
-        }
+        // change name featureInstancesRSToProcess ?
+        featureInstancesRS = featuresStmt.executeQuery();
     }
+
+
+    public boolean writeNext() throws Exception
+    {
+        if (!featureInstancesRS.next()) {
+            logger.debug("finished");
+            outputFormatter.close();
+            return false;
+        }
+
+        DataSource dataSource = definition.getDataSource();
+
+        long instanceId = featureInstancesRS.getLong(1);
+
+        orderClause = "";
+        for (IDimension dimension : definition.getDimensions()) {
+            if (!orderClause.equals("")) {
+                orderClause += ",";
+            }
+            orderClause += "\"" + dimension.getName() + "\"";
+        }
+
+        String query =
+            "select *"
+            + " from (" + dataSource.getVirtualDataTable() + ") as data"
+            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " on instance.id = data.instance_id"
+            + " where " + selectionClause
+            + " and data.instance_id = " + Long.toString(instanceId)
+            + " order by " + orderClause
+            + ";";
+
+        logger.debug("instanceId " + instanceId + ", " + query);
+        System.out.println( " instance id " + instanceId  ) ;
+
+        populateValues(query, definition.getDimensions(), definition.getVariables());
+
+        NetcdfFileWriteable writer = createWritable.create();
+
+        // Write the global attributes
+        for (Attribute attribute : definition.getGlobalAttributes()) {
+            String name = attribute.getName();
+            Object value = null;
+
+            if (attribute.getValue() != null) {
+                value = attributeValueParser.parse(attribute.getValue()).getValue();
+            }
+            else if (attribute.getSql() != null) {
+                value = evaluateSql(dataSource, instanceId, selectionClause, orderClause, attribute.getSql());
+            }
+            else {
+                throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
+            }
+
+            if (value == null) {
+                logger.error("Null attribute value '" + name + "'");
+            }
+            else if (value instanceof Number) {
+                writer.addGlobalAttribute(name, (Number)value);
+            }
+            else if (value instanceof String) {
+                writer.addGlobalAttribute(name, (String)value);
+            }
+            else if (value instanceof Array) {
+                writer.addGlobalAttribute(name, (Array)value);
+            }
+            else {
+                throw new NcdfGeneratorException("Unrecognized attribute type '" + value.getClass().getName() + "'");
+            }
+        }
+
+        // define dimensions
+        for (IDimension dimension : definition.getDimensions()) {
+            dimension.define(writer);
+        }
+
+        // define vars
+        for (IVariable variable : definition.getVariables()) {
+            variable.define(writer);
+        }
+
+        // finish netcdf definition
+        writer.create();
+
+        // write values
+        for (IVariable variable : definition.getVariables()) {
+            // maybe change name writeValues
+            variable.finish(writer);
+        }
+        // finish the file
+        writer.close();
+
+        // get filename
+        Object filename = evaluateSql(dataSource, instanceId, selectionClause, orderClause, definition.getFilenameTemplate().getSql());
+
+        // this is awful...
+        // format the file into the output stream
+        InputStream is = createWritable.getStream();
+        outputFormatter.write((String)filename, is);
+        is.close();
+
+        return true ;
+    }
+
 
     private Object evaluateSql(DataSource dataSource, long instanceId, String selectionClause, String orderClause, String sql) throws Exception {
         // we need aliases for the inner select, and to support wrapping the where selection
@@ -296,14 +295,8 @@ class NcdfEncoder {
             }
         }
 
-        int count = 0;
         // process result set rows
         while (rs.next()) {
-
-            if(count % 1000 == 0) { 
-                System.out.println( " count " + count ); 
-            }
-
             for (int i = 1; i <= numColumns; ++i) {
                 for (IAddValue p : processing[i]) {
                     p.addValueToBuffer(rs.getObject(i));
