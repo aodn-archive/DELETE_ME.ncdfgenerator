@@ -11,13 +11,9 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipFormatter implements IOutputFormatter {
 
-    private ZipOutputStream zipStream;
+    private final ZipOutputStream zipStream;
 
-    public ZipFormatter() {
-        this.zipStream = null;
-    }
-
-    public final void prepare(OutputStream os) {
+    public ZipFormatter( OutputStream os ) {
         this.zipStream = new ZipOutputStream(os);
     }
 
@@ -26,7 +22,11 @@ public class ZipFormatter implements IOutputFormatter {
         IOUtils.copy(is, zipStream);
     }
 
-    public final void finish() throws Exception {
+    public final void close() throws Exception {
+        // IMPORTANT - i don't think we're actually calling this
+
+        System.out.println( "zip stream close() called" );
+
         zipStream.close();
     }
 }

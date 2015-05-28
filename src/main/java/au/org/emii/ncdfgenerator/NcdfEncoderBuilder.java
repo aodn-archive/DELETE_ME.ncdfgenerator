@@ -10,20 +10,40 @@ import org.w3c.dom.Node;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
+
+/*
+    Ok, very interesting,the DataStoreInfo comes from geoserver
+    while the store comes from geotools.
+
+    means we can probably, copy code to instantiate ourselves if necessary.
+
+    the catalog is the catalog of geoserver layers . -- is this issue?
+
+    Could we dummy it ? eg. exactly the same as the layer filter service ?
+
+
+
+
+
+*/
+import org.geoserver.catalog.DataStoreInfo;
+
 
 public class NcdfEncoderBuilder {
     // responsible for assembling the NcdfEncoder
 
     private String layerConfigDir;
     private String tmpCreationDir;
-    private IOutputFormatter outputFormatter;
+    // private IOutputFormatter outputFormatter;
 
     public NcdfEncoderBuilder() {
+
+        System.out.println( "**** NcdfEncoderBuilder whoot constructor" );
+
     }
 
-    public final NcdfEncoder create(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
+    public final NcdfEncoder create(String typename, String filterExpr, Connection conn) throws Exception {
 
         InputStream config = null;
         try {
@@ -38,7 +58,7 @@ public class NcdfEncoderBuilder {
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputFormatter, os);
+            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
         }
         finally {
             if (config != null) {
@@ -56,8 +76,9 @@ public class NcdfEncoderBuilder {
         this.tmpCreationDir = tmpCreationDir;
     }
 
-    public final void setOutputType(IOutputFormatter outputFormatter) {
+/*    public final void setOutputType(IOutputFormatter outputFormatter) {
         this.outputFormatter = outputFormatter;
     }
+*/
 }
 

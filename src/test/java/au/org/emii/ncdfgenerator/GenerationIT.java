@@ -38,7 +38,7 @@ class MockOutputterCounter implements IOutputFormatter {
         ++count;
     }
 
-    public final void finish() {
+    public final void close() {
     }
 
     public int getCount() {
@@ -200,7 +200,9 @@ public class GenerationIT {
         Node node = document.getFirstChild();
         NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-        return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputGenerator, System.out);
+        NcdfEncoder encoder = new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
+        encoder.prepare(outputGenerator);
+        return encoder; 
     }
 
     private InputStream getAnmnConfig() {
