@@ -1,9 +1,5 @@
 package au.org.emii.ncdfgenerator;
 
-import au.org.emii.ncdfgenerator.cql.ExprParser;
-import au.org.emii.ncdfgenerator.cql.IDialectTranslate;
-import au.org.emii.ncdfgenerator.cql.IExprParser;
-import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -12,38 +8,25 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.Connection;
 
-/*
-    Ok, very interesting,the DataStoreInfo comes from geoserver
-    while the store comes from geotools.
-
-    means we can probably, copy code to instantiate ourselves if necessary.
-
-    the catalog is the catalog of geoserver layers . -- is this issue?
-
-    Could we dummy it ? eg. exactly the same as the layer filter service ?
-
-
-
-
-
-*/
 import org.geoserver.catalog.DataStoreInfo;
+
+import au.org.emii.ncdfgenerator.cql.ExprParser;
+import au.org.emii.ncdfgenerator.cql.IDialectTranslate;
+import au.org.emii.ncdfgenerator.cql.IExprParser;
+import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
 
 
 public class NcdfEncoderBuilder {
-    // responsible for assembling the NcdfEncoder
+    // assemble the NcdfEncoder
 
     private String layerConfigDir;
     private String tmpCreationDir;
-    // private IOutputFormatter outputFormatter;
 
     public NcdfEncoderBuilder() {
-
-        System.out.println( "**** NcdfEncoderBuilder whoot constructor" );
-
     }
 
     public final NcdfEncoder create(String typename, String filterExpr, Connection conn) throws Exception {
+        // TODO move args into builder methods
 
         InputStream config = null;
         try {
@@ -75,10 +58,5 @@ public class NcdfEncoderBuilder {
     public final void setTmpCreationDir(String tmpCreationDir) {
         this.tmpCreationDir = tmpCreationDir;
     }
-
-/*    public final void setOutputType(IOutputFormatter outputFormatter) {
-        this.outputFormatter = outputFormatter;
-    }
-*/
 }
 

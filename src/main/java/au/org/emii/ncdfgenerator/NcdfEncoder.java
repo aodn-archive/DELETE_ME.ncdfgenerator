@@ -61,7 +61,7 @@ public class NcdfEncoder {
     }
 
 
-    public void prepare( IOutputFormatter outputFormatter) throws Exception
+    public void prepare(IOutputFormatter outputFormatter) throws Exception
     {
         this.outputFormatter = outputFormatter;
 
