@@ -4,7 +4,5 @@
     <bean id="netcdfOutputProcess" class="au.org.emii.wps.NetcdfOutputProcess">
       <constructor-arg index="0" ref="wpsResourceManager"/>
       <constructor-arg index="1" ref="catalog"/>
-        <!--property name="catalog" ref="catalog"/ -->
- 
     </bean>
 </beans>
