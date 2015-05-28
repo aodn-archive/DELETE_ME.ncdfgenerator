@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 class StreamAdaptor extends InputStream
 {
-    class MyByteArrayOutputStream extends ByteArrayOutputStream {
+    class HelperByteArrayOutputStream extends ByteArrayOutputStream {
         byte [] getInternalBuffer() {
             return buf;
         }
@@ -18,12 +18,12 @@ class StreamAdaptor extends InputStream
 
     private static final Logger logger = LoggerFactory.getLogger(StreamAdaptor.class);
     private final StreamAdaptorSource source;
-    private final MyByteArrayOutputStream bos;
+    private final HelperByteArrayOutputStream bos;
     private int readPos;
 
     StreamAdaptor(StreamAdaptorSource source) throws Exception {
         this.source = source;
-        this.bos = new MyByteArrayOutputStream();
+        this.bos = new HelperByteArrayOutputStream();
         source.prepare(bos);
         readPos = 0;
     }
