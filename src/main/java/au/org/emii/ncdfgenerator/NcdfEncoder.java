@@ -120,15 +120,15 @@ public class NcdfEncoder {
         System.out.println( " whoot NcdfEncoder.writeNext()" ) ; 
 
 
-        DataSource dataSource = definition.getDataSource();
+        if( !featureInstancesRS.next()) {
+            System.out.println( " whoot NcdfEncoder.writeNext() finished " ) ; 
 
-        boolean result = featureInstancesRS.next();
-        if( !result)
+
+            outputFormatter.close();
             return false;
+        }
 
-
-
-
+        DataSource dataSource = definition.getDataSource();
 
         long instanceId = featureInstancesRS.getLong(1);
 

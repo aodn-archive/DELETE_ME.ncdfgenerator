@@ -67,7 +67,13 @@ import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 import au.org.emii.ncdfgenerator.IOutputFormatter; 
 import au.org.emii.ncdfgenerator.ZipFormatter; 
 
+/*
+    Important. 
+        Change name, now that there's no NcdfGenerator class
+        to encoder exception.
 
+    ./src/main/java/au/org/emii/ncdfgenerator/NcdfGeneratorException.java
+*/
 
 /*
     VERY IMPORTANT
@@ -83,6 +89,7 @@ class StreamAdaptorSource
 {
     final private NcdfEncoder encoder;
     // embed the geotools tx to keep our connection from being cleaned up ....
+    // should we explicitly close the connection as well? 
     final private Transaction t ; 
 
     StreamAdaptorSource( NcdfEncoder encoder, Transaction t )
@@ -122,7 +129,7 @@ class StreamAdaptor extends InputStream
     // System.arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
     StreamAdaptorSource source;
     MyByteArrayOutputStream b;
-    int readIdx;
+    int readPos;
 
     StreamAdaptor( StreamAdaptorSource source ) throws Exception {
         System.out.println( "My stream constructor " ) ;
@@ -130,13 +137,13 @@ class StreamAdaptor extends InputStream
         this.source = source;
         this.b = new MyByteArrayOutputStream();
         source.prepare( b ); // might throw...
-        readIdx = 0;
+        readPos = 0;
      }
 
     // Instance Methods
     public int available() {
         // hint only
-        // return b.size() - readIdx; 
+        // return b.size() - readPos; 
 
         System.out.println( "available called " ) ; 
 
@@ -166,38 +173,51 @@ class StreamAdaptor extends InputStream
     public int read(byte[] dst, int off, int len) throws IOException
     {   
         try { 
-            System.out.println( "read() off " + off + " len " + len + " b.size() " + b.size() + " readIdx " + readIdx );
+            System.out.println( "read() dst.length " + dst.length + " off " + off + " len " + len + " b.size() " + b.size() + " readPos " + readPos );
 
-            if( readIdx + len >= b.size() ) { 
+            // if the request exceeds what's available in the buffer
+            if( readPos + len >= b.size() ) { 
         
-                // maybe clear the ByteArray internal buffer, by discarding what's already been read
-                if( readIdx != 0) {
-                    int remainingSize = b.size() - readIdx; 
+                // re-align the ByteArray internal buffer, by discarding already consumed data
+                if( readPos != 0) {
+                    int remainingSize = b.size() - readPos; 
                     System.out.println( "recentering "+ remainingSize );
                     byte[] remaining = new byte [remainingSize ];
-                    System.arraycopy( b.getInternalBuffer(), readIdx, remaining, 0, remainingSize);
+                    System.arraycopy( b.getInternalBuffer(), readPos, remaining, 0, remainingSize);
                     b.reset();
+
+                    System.out.println( "internal array size " + b.getInternalBuffer().length );
+ 
                     b.write( remaining, 0, remainingSize);
-                    readIdx = 0;
+                    readPos = 0;
                 }   
-                // read more
+                // get more source data
                 if( source.update()) { 
                     return read( dst, off, len );
                 } else {
-                    // none then adjust len to what remains in the buffer
-                    len = b.size() - readIdx;
-                    if(len == 0) {
+                    // no more source data
+                    // this is wrong if it ends up setting it larger than the dst buffer ...
+                    
+                    int remainingSize = b.size() - readPos;
+                    if(remainingSize == 0) {
                         // should call close() here?
                         System.out.println( "finished... " ); 
                         // call close here? no, because we have an output stream, and there's  
                         // nothing to do
                         return -1; 
-                    }   
+                    } else {
+                        len = Math.min( len, remainingSize);
+                    }
                 }   
             }   
+
+            System.out.println( "arraycopy b.buf.length " + b.getInternalBuffer().length + " readPos " + readPos  );
+            System.out.println( "arraycopy dst.length " + dst.length + " off " + off ); 
+            System.out.println( "arraycopy len " + len ); 
+
             // write buf and adjust read position
-            System.arraycopy( b.getInternalBuffer(), readIdx, dst, off, len );
-            readIdx += len;
+            System.arraycopy( b.getInternalBuffer(), readPos, dst, off, len );
+            readPos += len;
             return len;
         } catch( Exception e ) { 
             throw new IOException( e ); 

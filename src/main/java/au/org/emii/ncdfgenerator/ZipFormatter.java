@@ -24,6 +24,9 @@ public class ZipFormatter implements IOutputFormatter {
 
     public final void close() throws Exception {
         // IMPORTANT - i don't think we're actually calling this
+
+        System.out.println( "zip stream close() called" );
+
         zipStream.close();
     }
 }
