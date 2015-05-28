@@ -104,13 +104,16 @@ class StreamAdaptorSource
     }
 
     // change name to writeNext or writeMore...
-    boolean update() throws Exception
+    boolean update() throws IOException
     {
-        System.out.println( "update()" ); 
+        try { 
+            System.out.println( "update()" ); 
+            // close out the transaction... when finished.
+            return encoder.writeNext();
 
-        // close out the transaction... when finished.
-
-        return encoder.writeNext();
+        } catch( Exception e ) { 
+            throw new IOException( e );
+        }
     }
 }
 
@@ -172,7 +175,7 @@ class StreamAdaptor extends InputStream
 
     public int read(byte[] dst, int off, int len) throws IOException
     {   
-        try { 
+//        try { 
             System.out.println( "read() dst.length " + dst.length + " off " + off + " len " + len + " b.size() " + b.size() + " readPos " + readPos );
 
             // if the request exceeds what's available in the buffer
@@ -219,9 +222,10 @@ class StreamAdaptor extends InputStream
             System.arraycopy( b.getInternalBuffer(), readPos, dst, off, len );
             readPos += len;
             return len;
-        } catch( Exception e ) { 
-            throw new IOException( e ); 
+ /*       } catch( IOException e ) { 
+            throw new IOException( e );
         }
+*/
     }   
 }
 
