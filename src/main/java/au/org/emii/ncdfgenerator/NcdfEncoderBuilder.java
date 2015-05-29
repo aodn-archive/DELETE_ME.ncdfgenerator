@@ -1,29 +1,32 @@
 package au.org.emii.ncdfgenerator;
 
-import au.org.emii.ncdfgenerator.cql.ExprParser;
-import au.org.emii.ncdfgenerator.cql.IDialectTranslate;
-import au.org.emii.ncdfgenerator.cql.IExprParser;
-import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 
+import org.geoserver.catalog.DataStoreInfo;
+
+import au.org.emii.ncdfgenerator.cql.ExprParser;
+import au.org.emii.ncdfgenerator.cql.IDialectTranslate;
+import au.org.emii.ncdfgenerator.cql.IExprParser;
+import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
+
+
 public class NcdfEncoderBuilder {
-    // responsible for assembling the NcdfEncoder
+    // assemble the NcdfEncoder
 
     private String layerConfigDir;
     private String tmpCreationDir;
-    private IOutputFormatter outputFormatter;
 
     public NcdfEncoderBuilder() {
     }
 
-    public final NcdfEncoder create(String typename, String filterExpr, Connection conn, OutputStream os) throws Exception {
+    public final NcdfEncoder create(String typename, String filterExpr, Connection conn) throws Exception {
+        // TODO move args into builder methods
 
         InputStream config = null;
         try {
@@ -38,7 +41,7 @@ public class NcdfEncoderBuilder {
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputFormatter, os);
+            return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
         }
         finally {
             if (config != null) {
@@ -54,10 +57,6 @@ public class NcdfEncoderBuilder {
 
     public final void setTmpCreationDir(String tmpCreationDir) {
         this.tmpCreationDir = tmpCreationDir;
-    }
-
-    public final void setOutputType(IOutputFormatter outputFormatter) {
-        this.outputFormatter = outputFormatter;
     }
 }
 

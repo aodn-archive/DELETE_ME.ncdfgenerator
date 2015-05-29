@@ -38,7 +38,7 @@ class MockOutputterCounter implements IOutputFormatter {
         ++count;
     }
 
-    public final void finish() {
+    public final void close() {
     }
 
     public int getCount() {
@@ -200,11 +200,17 @@ public class GenerationIT {
         Node node = document.getFirstChild();
         NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
-        return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr, outputGenerator, System.out);
+        NcdfEncoder encoder = new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
+        encoder.prepare(outputGenerator);
+        return encoder;
     }
 
     private InputStream getAnmnConfig() {
         return getClass().getResourceAsStream("/anmn_ts.xml");
+    }
+
+    private void consumeEncoderOutput(NcdfEncoder encoder) throws Exception {
+        while (encoder.writeNext());
     }
 
     @BeforeClass
@@ -227,32 +233,28 @@ public class GenerationIT {
 
     @Test
     public void testAnmnNrsCtdProfiles() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        InputStream config = getClass().getResourceAsStream("/anmn_nrs_ctd_profiles.xml");
         String cql = "TIME < '2013-6-29T00:40:01Z' ";
-        generator.write("anmn_nrs_ctd_profiles", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(config, cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
     public void testSoopSSTTrajectory() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
+        InputStream config = getClass().getResourceAsStream("/soop_sst_trajectory.xml");
         String cql = "TIME >= '2013-6-27T00:35:01Z' AND TIME <= '2013-6-29T00:40:01Z' ";
-        generator.write("soop_sst_trajectory", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(config, cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
     public void testAnmnTs() throws Exception {
-        String layerConfigDir = getClass().getResource("/").getFile();
-        String tmpCreationDir = TMPDIR;
-        NcdfGenerator generator = new NcdfGenerator(layerConfigDir, tmpCreationDir);
-        OutputStream os = new FileOutputStream(TMPDIR + "/output.zip");
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' ";
-        generator.write("anmn_ts", cql, getConn(), os);
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
@@ -260,7 +262,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(11, outputter.getCount());
     }
 
@@ -269,7 +271,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((163.7841796875 -15.9970703125,163.7841796875 -3.0771484375,173.8037109375 -3.077148437499999,173.8037109375 -15.9970703125,163.7841796875 -15.9970703125))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(0, outputter.getCount());
     }
 
@@ -279,7 +281,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((113.33 -33.09,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '1949-01-01T23:00:00Z' AND TIME <= '1951-01-01T00:00:00Z'";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(0, outputter.getCount());
     }
 
@@ -288,8 +290,9 @@ public class GenerationIT {
 
         String cql = "INTERSECTS(geom,POLYGON((182 -33.09,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
 
-        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
-        encoder.write();
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test(expected = PSQLException.class)
@@ -297,8 +300,9 @@ public class GenerationIT {
 
         String cql = "INTERSECTS(geom,POLYGON((113.33 -95,113.33 -30.98,117.11 -30.98,117.11 -33.09,113.33 -33.09))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z'";
 
-        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
-        encoder.write();
+        MockOutputterCounter outputter = new MockOutputterCounter();
+        NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
+        consumeEncoderOutput(encoder);
     }
 
     @Test
@@ -306,7 +310,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND (NOMINAL_DEPTH = 125.0 OR NOMINAL_DEPTH = 150.0)";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(2, outputter.getCount());
     }
 
@@ -314,8 +318,10 @@ public class GenerationIT {
     public void testCqlWithFloatEqualityInvalid() throws Exception {
         // eg. 5000. is not valid cql float
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH = 5000.";
+
+        MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), new MockOutputterCounter());
-        encoder.write();
+        consumeEncoderOutput(encoder);
     }
 
     @Test
@@ -323,7 +329,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND NOMINAL_DEPTH <> 125.0";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(10, outputter.getCount());
     }
 
@@ -333,7 +339,7 @@ public class GenerationIT {
         String cql = "INTERSECTS(geom,POLYGON((113.3349609375 -33.091796875,113.3349609375 -30.982421875,117.1142578125 -30.982421875,117.1142578125 -33.091796875,113.3349609375 -33.091796875))) AND TIME >= '2015-01-13T23:00:00Z' AND TIME <= '2015-04-14T00:00:00Z' AND TEMP_quality_control = '4'";
         MockOutputterCounter outputter = new MockOutputterCounter();
         NcdfEncoder encoder = getEncoder(getAnmnConfig(), cql, getConn(), outputter);
-        encoder.write();
+        consumeEncoderOutput(encoder);
         assertEquals(10, outputter.getCount());
         // TODO, should check that we only include obs with temp_qc = 4 etc, not just that instances are constrained.
     }
