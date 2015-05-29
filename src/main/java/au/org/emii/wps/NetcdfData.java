@@ -2,26 +2,11 @@ package au.org.emii.wps;
 
 import java.io.InputStream;
 
-import org.geoserver.wps.process.RawData;
+import org.geoserver.wps.process.StreamRawData;
 
-class NetcdfData implements RawData
+class NetcdfData extends StreamRawData
 {
-    private final InputStream is;
-
-    NetcdfData(InputStream is) {
-        this.is = is;
-    }
-
-    public InputStream getInputStream() {
-        return is;
-    }
-
-    public String getMimeType() {
-        return "application/zip";
-    }
-
-    public String getFileExtension() {
-        return "zip";
+    NetcdfData(InputStream inputStream) {
+        super("application/zip", inputStream, "zip");
     }
 }
-

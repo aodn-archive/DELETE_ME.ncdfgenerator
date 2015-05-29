@@ -21,8 +21,7 @@ import org.geotools.process.factory.DescribeParameter;
 import org.geotools.process.factory.DescribeProcess;
 import org.geotools.process.factory.DescribeResult;
 import org.geoserver.wps.gs.GeoServerProcess;
-import org.geoserver.wps.process.RawData;
-import org.geoserver.wps.process.RawData;
+import org.geoserver.wps.process.StreamRawData;
 import org.geoserver.wps.resource.WPSResourceManager;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
@@ -53,7 +52,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
     @DescribeResult(name="result", description="Zipped netcdf files", meta={"mimeTypes=application/zip"})
 
-    public RawData execute(
+    public StreamRawData execute(
         @DescribeParameter(name="typeName", description="Collection to download")
         String typeName,
         @DescribeParameter(name="cqlFilter", description="CQL Filter to apply")
