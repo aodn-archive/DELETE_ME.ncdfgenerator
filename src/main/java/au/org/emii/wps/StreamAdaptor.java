@@ -16,7 +16,7 @@ class StreamAdaptor extends InputStream
         }
     }
 
-    public static final int CLIENT_READ_SIZE_HINT = 8192;
+    private static final int CLIENT_READ_SIZE_HINT = 8192;
     private static final Logger logger = LoggerFactory.getLogger(StreamAdaptor.class);
     private final StreamAdaptorSource source;
     private final HelperByteArrayOutputStream bos;
