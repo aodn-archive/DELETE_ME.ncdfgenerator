@@ -34,7 +34,6 @@ import au.org.emii.wps.StreamAdaptor;
 import au.org.emii.wps.StreamAdaptorSource;
 
 import javax.servlet.ServletContext;
-import org.springframework.beans.factory.annotation.Autowired;
 
 
 
@@ -46,7 +45,6 @@ public class NetcdfOutputProcess implements GeoServerProcess {
     private final Catalog catalog;
     private final String workingDir;
 
-    @Autowired
     private ServletContext context;
 
     public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog, ServletContext context) {
