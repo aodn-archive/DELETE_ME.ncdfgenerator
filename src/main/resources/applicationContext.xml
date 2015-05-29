@@ -4,5 +4,18 @@
     <bean id="netcdfOutputProcess" class="au.org.emii.wps.NetcdfOutputProcess">
       <constructor-arg index="0" ref="wpsResourceManager"/>
       <constructor-arg index="1" ref="catalog"/>
+        <constructor-arg index="2" ref="servletContext"/>
+
     </bean>
+
+<!--
+    <bean id="layerFiltersService" class="au.org.emii.geoserver.extensions.filters.LayerFiltersService">
+        <property name="catalog" ref="catalog"/>
+    </bean>
+
+    <bean id="foo" class="FooFactory" factory-method="getFoo">
+      <constructor-arg index="0" ref="servletContext"/>
+   </bean>
+-->
+
 </beans>

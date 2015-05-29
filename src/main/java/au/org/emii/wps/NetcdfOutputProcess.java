@@ -33,6 +33,10 @@ import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 import au.org.emii.wps.StreamAdaptor;
 import au.org.emii.wps.StreamAdaptorSource;
 
+import javax.servlet.ServletContext;
+import org.springframework.beans.factory.annotation.Autowired;
+
+
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
 public class NetcdfOutputProcess implements GeoServerProcess {
@@ -42,7 +46,12 @@ public class NetcdfOutputProcess implements GeoServerProcess {
     private final Catalog catalog;
     private final String workingDir;
 
-    public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog) {
+    @Autowired
+    private ServletContext context;
+
+    public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog, ServletContext context) {
+
+        System.out.println( "\n@@@@@@@@@@@@@@@@@@ NetcdfOutputProcess " + context );
 
         logger.info("constructor, catalog " + catalog);
 
@@ -59,6 +68,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         @DescribeParameter(name="cqlFilter", description="CQL Filter to apply")
         String cqlFilter
     ) throws ProcessException {
+
+        System.out.println( "\n@@@@@@@@@@@@@@@@@@ execute - context " + context );
 
         Transaction transaction = null;
         Connection conn = null;
