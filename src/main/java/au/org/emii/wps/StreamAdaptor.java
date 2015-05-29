@@ -16,6 +16,7 @@ class StreamAdaptor extends InputStream
         }
     }
 
+    public static final int CLIENT_READ_SIZE_HINT = 8192;
     private static final Logger logger = LoggerFactory.getLogger(StreamAdaptor.class);
     private final StreamAdaptorSource source;
     private final HelperByteArrayOutputStream bos;
@@ -29,8 +30,7 @@ class StreamAdaptor extends InputStream
     }
 
     public int available() {
-        // hint only
-        return 8192;
+        return CLIENT_READ_SIZE_HINT;
     }
 
     public void close() {
@@ -43,7 +43,7 @@ class StreamAdaptor extends InputStream
         // inefficient, but sane clients will call read(buf,off,len) instead
         byte [] buf = new byte [1];
         if (read(buf, 0, 1) > 0) {
-            return buf[ 0];
+            return buf[0];
         } else {
             return -1;
         }

@@ -66,7 +66,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         try {
             _writeTemplateToWorkingDir(typeName);
 
-            DataStoreInfo dsinfo = catalog.getDataStoreByName( "imos", "JNDI_anmn_ts");
+            DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
@@ -125,8 +125,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             // when the process has finished executing (Hack! Should be a method on the resource manager)
             return resourceManager.getTemporaryResource("").dir().getAbsolutePath();
        } catch (Exception e) {
-           // TODO: Use logger
-            logger.info( "Exception accessing working directory: \n" + e );
+            logger.info("Exception accessing working directory: \n" + e);
             return System.getProperty("java.io.tmpdir");
        }
    }

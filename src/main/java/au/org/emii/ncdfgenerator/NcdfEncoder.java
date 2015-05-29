@@ -128,7 +128,6 @@ public class NcdfEncoder {
             + ";";
 
         logger.debug("instanceId " + instanceId + ", " + query);
-        System.out.println( " instance id " + instanceId  ) ;
 
         populateValues(query, definition.getDimensions(), definition.getVariables());
 
