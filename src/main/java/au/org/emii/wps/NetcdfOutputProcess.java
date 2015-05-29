@@ -35,6 +35,16 @@ import au.org.emii.wps.StreamAdaptorSource;
 
 import javax.servlet.ServletContext;
 
+import org.geoserver.config.GeoServerDataDirectory;
+import org.geoserver.platform.GeoServerResourceLoader;
+import java.io.File;
+
+import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.NamespaceInfo;
+import org.geotools.feature.NameImpl;
+
+
+
 
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
@@ -55,6 +65,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
         this.resourceManager = resourceManager;
         this.catalog = catalog;
+
+        this.context = context;
+
         this.workingDir = getWorkingDir(resourceManager);
     }
 
@@ -68,12 +81,48 @@ public class NetcdfOutputProcess implements GeoServerProcess {
     ) throws ProcessException {
 
         System.out.println( "\n@@@@@@@@@@@@@@@@@@ execute - context " + context );
+        System.out.println( "\ntypename " + typeName );
+
 
         Transaction transaction = null;
         Connection conn = null;
 
         try {
             _writeTemplateToWorkingDir(typeName);
+
+
+
+    // String path = new DataDirectory(context).getLayerDataDirectoryPath(layerInfo);
+
+            String dataPath = GeoServerResourceLoader.lookupGeoServerDataDirectory(context);
+            System.out.println( "dataPath " + dataPath ); 
+
+            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File( dataPath ));
+
+            
+            NamespaceInfo ns = catalog.getNamespaceByPrefix("imos");
+            System.out.println( "\nns " + ns );
+    
+            String nsURI = ns.getURI();
+            LayerInfo layerInfo = catalog.getLayerByName(new NameImpl(nsURI, "anmn_ts_timeseries_map" ));
+
+            // or this if no ns... 
+            // return catalog.getLayerByName(layerName); 
+            System.out.println( "\nlayerInfo " + layerInfo);
+            
+
+            String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
+
+            System.out.println( "\npath " + path );
+ 
+ 
+//            System.out.println( "layerInfo " + layerInfo ); 
+/*
+            if (layerInfo == null) {
+                throw new ServiceException("Could not find layer " + workspace + ":" + layer);
+            }
+            String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
+*/
 
             DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
