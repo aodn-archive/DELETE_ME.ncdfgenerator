@@ -94,22 +94,22 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
     // String path = new DataDirectory(context).getLayerDataDirectoryPath(layerInfo);
 
-            String dataPath = GeoServerResourceLoader.lookupGeoServerDataDirectory(context);
-            System.out.println( "dataPath " + dataPath ); 
-
-            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File( dataPath ));
 
             
             NamespaceInfo ns = catalog.getNamespaceByPrefix("imos");
             System.out.println( "\nns " + ns );
     
             String nsURI = ns.getURI();
-            LayerInfo layerInfo = catalog.getLayerByName(new NameImpl(nsURI, "anmn_ts_timeseries_map" ));
+            LayerInfo layerInfo = catalog.getLayerByName(new NameImpl(nsURI, "anmn_ts_timeseries_data" ));
 
             // or this if no ns... 
             // return catalog.getLayerByName(layerName); 
             System.out.println( "\nlayerInfo " + layerInfo);
-            
+
+            String dataPath = GeoServerResourceLoader.lookupGeoServerDataDirectory(context);
+            System.out.println( "dataPath " + dataPath ); 
+           
+            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File( dataPath ));
 
             String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
 
