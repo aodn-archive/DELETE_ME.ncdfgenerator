@@ -160,6 +160,7 @@ public class NcdfEncoder {
             }
             else {
                 throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
+
             }
 
             if (value == null) {
