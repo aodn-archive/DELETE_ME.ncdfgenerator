@@ -2,6 +2,7 @@ package au.org.emii.wps;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -9,6 +10,8 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.commons.io.IOUtils;
 
 import org.geotools.data.Transaction;
 import org.geotools.data.DefaultTransaction;
@@ -20,32 +23,28 @@ import org.geotools.process.factory.DescribeProcess;
 import org.geotools.process.factory.DescribeResult;
 
 import org.geoserver.wps.gs.GeoServerProcess;
-import org.geoserver.wps.process.RawData;
-import org.geoserver.wps.process.RawData;
+import org.geoserver.wps.process.FileRawData;
 import org.geoserver.wps.resource.WPSResourceManager;
+import org.geoserver.wps.ProcessDismissedException;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerResourceLoader;
+import org.opengis.util.ProgressListener;
 
 import au.org.emii.ncdfgenerator.NcdfEncoder;
 import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
-import au.org.emii.wps.StreamAdaptor;
-import au.org.emii.wps.StreamAdaptorSource;
+import au.org.emii.ncdfgenerator.ZipFormatter;
+import au.org.emii.ncdfgenerator.NcdfDefinitionXMLParser;
+import au.org.emii.ncdfgenerator.NcdfDefinition;
 
 import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-
-import au.org.emii.ncdfgenerator.NcdfDefinitionXMLParser;
-import au.org.emii.ncdfgenerator.NcdfDefinition;
-
-import org.apache.commons.io.IOUtils;
-
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
 public class NetcdfOutputProcess implements GeoServerProcess {
@@ -66,18 +65,20 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
     @DescribeResult(name="result", description="Zipped netcdf files", meta={"mimeTypes=application/zip"})
 
-    public RawData execute(
+    public FileRawData execute(
         @DescribeParameter(name="namespace", description="Namespace for collection")
         String namespace,
         @DescribeParameter(name="typeName", description="Collection to download")
         String typeName,
         @DescribeParameter(name="cqlFilter", description="CQL Filter to apply")
-        String cqlFilter
+        String cqlFilter,
+        ProgressListener progressListener
     ) throws ProcessException {
 
         Transaction transaction = null;
         Connection conn = null;
         InputStream config = null;
+        FileOutputStream os = null;
 
         try {
             // lookup the layer in the catalog
@@ -126,10 +127,19 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
             NcdfEncoder encoder = encoderBuilder.create();
 
-            StreamAdaptorSource source = new NetcdfAdaptorSource(encoder, transaction, conn);
-            InputStream is = new StreamAdaptor(source);
+            final File outputFile = resourceManager.getOutputResource(
+                resourceManager.getExecutionId(true), typeName + ".zip").file();
 
-            return new NetcdfData(is);
+            os = new FileOutputStream(outputFile);
+
+            encoder.prepare(new ZipFormatter(os));
+            while (encoder.writeNext()) {
+                if (progressListener.isCanceled()) {
+                    throw new ProcessDismissedException(progressListener);
+                }
+            }
+
+            return new FileRawData(outputFile, "application/zip");
 
         } catch (Exception e) {
             if (transaction != null) {
@@ -149,6 +159,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             throw new ProcessException(e);
         } finally {
             IOUtils.closeQuietly(config);
+            IOUtils.closeQuietly(os);
         }
     }
 
