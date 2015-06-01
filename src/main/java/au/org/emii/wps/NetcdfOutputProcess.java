@@ -148,6 +148,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
 */
 
+            // we have to have a namespace...
+            // to extract a store
             DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
 
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);

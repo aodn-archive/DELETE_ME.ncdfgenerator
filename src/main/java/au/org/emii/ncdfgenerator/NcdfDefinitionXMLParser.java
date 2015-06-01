@@ -94,14 +94,14 @@ public class NcdfDefinitionXMLParser {
     }
 
     class DataSourceParser {
-        private String schema;
+        private String dataStoreName;
         private String virtualDataTable;
         private String virtualInstanceTable;
 
         private void extractValue(Node child) throws NcdfGeneratorException {
             String tag = child.getNodeName();
-            if (tag.equals("schema")) {
-                schema = Helper.nodeVal(child);
+            if (tag.equals("dataStoreName")) {
+                dataStoreName = Helper.nodeVal(child);
             }
             else if (tag.equals("virtualDataTable")) {
                 virtualDataTable = Helper.nodeVal(child);
@@ -125,7 +125,7 @@ public class NcdfDefinitionXMLParser {
                 }
             }
 
-            return new DataSource(schema, virtualDataTable, virtualInstanceTable);
+            return new DataSource(dataStoreName, virtualDataTable, virtualInstanceTable);
         }
     }
 
