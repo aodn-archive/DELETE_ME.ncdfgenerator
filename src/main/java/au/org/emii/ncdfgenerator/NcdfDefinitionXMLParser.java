@@ -24,7 +24,7 @@ final class Helper {
     }
 }
 
-class NcdfDefinitionXMLParser {
+public class NcdfDefinitionXMLParser {
     class Context {
         // required to resolve references to dimensions from the variable definitions
         private List<IDimension> dimensions;
@@ -43,7 +43,7 @@ class NcdfDefinitionXMLParser {
         }
     }
 
-    NcdfDefinition parse(Node node) throws NcdfGeneratorException {
+    public NcdfDefinition parse(Node node) throws NcdfGeneratorException {
         if (node.getNodeName().equals("definition")) {
             return new DefinitionParser().parse(node);
         }

@@ -19,13 +19,19 @@ import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
 public class NcdfEncoderBuilder {
     // assemble the NcdfEncoder
 
-    private String layerConfigDir;
-    private String tmpCreationDir;
+//    private String layerConfigDir;
+   private String tmpCreationDir;
 
     public NcdfEncoderBuilder() {
     }
 
-    public final NcdfEncoder create(String typename, String filterExpr, Connection conn) throws Exception {
+/*
+    - It's almost certainly better to avoid handling resources in here
+    as much as possible. 
+
+    - eg. the actual definition should be a definition node ....
+*/
+    public final NcdfEncoder create(NcdfDefinition definition, String filterExpr, Connection conn) throws Exception {
         // TODO move args into builder methods
 
         InputStream config = null;
@@ -35,12 +41,13 @@ public class NcdfEncoderBuilder {
             ICreateWritable createWritable = new CreateWritable(tmpCreationDir);
             IAttributeValueParser attributeValueParser = new AttributeValueParser();
 
+/*
             config = new FileInputStream(layerConfigDir + "/" + typename + ".xml");
 
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
-
+*/
             return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
         }
         finally {
@@ -51,10 +58,11 @@ public class NcdfEncoderBuilder {
         }
     }
 
+/*
     public final void setLayerConfigDir(String layerConfigDir) {
         this.layerConfigDir = layerConfigDir;
     }
-
+*/
     public final void setTmpCreationDir(String tmpCreationDir) {
         this.tmpCreationDir = tmpCreationDir;
     }

@@ -2,7 +2,7 @@ package au.org.emii.ncdfgenerator;
 
 import java.util.List;
 
-class NcdfDefinition {
+public class NcdfDefinition {
     private final DataSource dataSource;
     private final FilenameTemplate filenameTemplate;
     private final List<Attribute> globalAttributes;

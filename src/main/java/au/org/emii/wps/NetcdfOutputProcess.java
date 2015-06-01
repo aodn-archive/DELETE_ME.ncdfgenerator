@@ -2,6 +2,7 @@ package au.org.emii.wps;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,7 +45,14 @@ import org.geoserver.catalog.NamespaceInfo;
 import org.geotools.feature.NameImpl;
 
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
+
+import au.org.emii.ncdfgenerator.NcdfDefinitionXMLParser;
+import au.org.emii.ncdfgenerator.NcdfDefinition;
 
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
@@ -114,7 +122,21 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
 
             System.out.println( "\npath " + path );
- 
+
+            String filePath = path + "/netcdf.xml"; 
+
+            System.out.println( "\nfilePath " + filePath );
+
+            InputStream config = new FileInputStream( filePath );  // change name, definitionConfig ..
+
+            System.out.println( "\nconfig " + config );
+
+
+            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
+            Node node = document.getFirstChild();
+            NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
+
+
  
 //            System.out.println( "layerInfo " + layerInfo ); 
 /*
@@ -125,17 +147,32 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 */
 
             DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
+
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
 
             NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
-            encoderBuilder.setLayerConfigDir(workingDir); // TODO should be removed
+//            encoderBuilder.setLayerConfigDir(workingDir); // TODO should be removed
             encoderBuilder.setTmpCreationDir(workingDir);
 
+
+            // OK. we want to get rid of passing the typeName, and just pass the config 
+            // and actually make these proper builder methods...
+
+            // ok, there's more going on. we are going to have to parse the definition externally. 
+            // so we can extract the store name.
+
+            // so we need to expose this. 
+
+
+
+
             // TODO args as builder methods
-            NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn);
+            NcdfEncoder encoder = encoderBuilder.create(null, cqlFilter, conn);
+
             StreamAdaptorSource source = new NetcdfAdaptorSource(encoder, transaction, conn);
+
             InputStream is = new StreamAdaptor(source);
 
             return new NetcdfData(is);
