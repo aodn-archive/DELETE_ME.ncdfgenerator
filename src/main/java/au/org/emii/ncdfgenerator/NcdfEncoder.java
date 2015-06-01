@@ -62,28 +62,42 @@ public class NcdfEncoder {
         outputFormatter = null;
         featureInstancesRS = null;
     }
-
+/*
     private String qualifySchema(String table) {
+        return table;
+
         if(schema != null && !schema.equals("")) {
             return schema + "." + table;
         } else {
             return table;
         }
     }
+*/
 
     private String getVirtualDataTable() {
+        /*
         DataSource dataSource = definition.getDataSource();
         return qualifySchema(dataSource.getVirtualDataTable());
+        */
+        return definition.getDataSource().getVirtualDataTable();
     }
 
     private String getVirtualInstanceTable() {
+        /* 
         DataSource dataSource = definition.getDataSource();
         return qualifySchema(dataSource.getVirtualInstanceTable());
+        */
+        return definition.getDataSource().getVirtualInstanceTable();
     }
 
     public void prepare(IOutputFormatter outputFormatter) throws Exception
     {
         this.outputFormatter = outputFormatter;
+
+        // do not quote search path!.
+        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + schema + ", public");
+        pathStmt.execute();
+        pathStmt.close();
 
         // Batch results set
         conn.setAutoCommit(false);
@@ -101,6 +115,8 @@ public class NcdfEncoder {
             + " on instance.id = data.instance_id"
             + " where " + selectionClause
             + ";";
+
+        System.out.println( "instanceQuery is " + instanceQuery );
 
         PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
         featuresStmt.setFetchSize(fetchSize);

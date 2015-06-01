@@ -96,20 +96,30 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         Connection conn = null;
 
         try {
-            _writeTemplateToWorkingDir(typeName);
+            // _writeTemplateToWorkingDir(typeName); // TODO get rid of this...
 
 
+            // String path = new DataDirectory(context).getLayerDataDirectoryPath(layerInfo);
 
-    // String path = new DataDirectory(context).getLayerDataDirectoryPath(layerInfo);
+            String namespace = "imos";
+
+            LayerInfo layerInfo = null;
+
+            if(namespace != null && !namespace.equals("")) {
+                NamespaceInfo ns = catalog.getNamespaceByPrefix("imos");
+                System.out.println( "\nns " + ns );
+                String nsURI = ns.getURI();
+                layerInfo = catalog.getLayerByName(new NameImpl(nsURI, typeName));
+            } else {
+                layerInfo = catalog.getLayerByName(typeName); 
+            }
+
+            if(layerInfo == null) {
+                throw new ProcessException("Failed to lookup typename " + typeName);
+            }
 
 
             
-            NamespaceInfo ns = catalog.getNamespaceByPrefix("imos");
-            System.out.println( "\nns " + ns );
-    
-            String nsURI = ns.getURI();
-            LayerInfo layerInfo = catalog.getLayerByName(new NameImpl(nsURI, "anmn_ts_timeseries_data" ));
-
             // or this if no ns... 
             // return catalog.getLayerByName(layerName); 
             System.out.println( "\nlayerInfo " + layerInfo);
@@ -117,7 +127,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             String dataPath = GeoServerResourceLoader.lookupGeoServerDataDirectory(context);
             System.out.println( "dataPath " + dataPath ); 
            
-            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File( dataPath ));
+            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File(dataPath));
 
             String path = dataDirectory.get(layerInfo).dir().getAbsolutePath();
 
@@ -135,7 +145,6 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
-
 
             System.out.println( "\nhere0  - definition is " + definition );
             
@@ -210,6 +219,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         }
     }
 
+/*
    private void _writeTemplateToWorkingDir(String typeName) throws IOException {
        ClassLoader loader = this.getClass().getClassLoader();
        String templateFilename = String.format("%s.xml", typeName);
@@ -227,8 +237,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
            IOUtils.copy(templateIn, templateOut);
        }
    }
-
+*/
    private String getWorkingDir(WPSResourceManager resourceManager) {
+        // TODO remove this ? 
        try {
             // Use WPSResourceManager to create a temporary directory that will get cleaned up
             // when the process has finished executing (Hack! Should be a method on the resource manager)
