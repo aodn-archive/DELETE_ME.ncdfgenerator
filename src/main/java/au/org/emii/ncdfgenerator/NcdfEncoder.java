@@ -85,15 +85,7 @@ public class NcdfEncoder {
     {
         this.outputFormatter = outputFormatter;
 
-//        DataSource dataSource = definition.getDataSource();
-
-/*
-        // do not quote search path!.
-        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + schema + ", public");
-        pathStmt.execute();
-        pathStmt.close();
-*/
-        //Batch results set
+        // Batch results set
         conn.setAutoCommit(false);
 
         IExpression selectionExpr = exprParser.parseExpression(filterExpr);
@@ -125,8 +117,6 @@ public class NcdfEncoder {
             outputFormatter.close();
             return false;
         }
-
-//        DataSource dataSource = definition.getDataSource();
 
         long instanceId = featureInstancesRS.getLong(1);
 
@@ -220,7 +210,7 @@ public class NcdfEncoder {
     }
 
 
-    private Object evaluateSql(/*DataSource dataSource,*/ long instanceId, String selectionClause, String orderClause, String sql) throws Exception {
+    private Object evaluateSql(long instanceId, String selectionClause, String orderClause, String sql) throws Exception {
         // we need aliases for the inner select, and to support wrapping the where selection
         sql = sql.replaceAll("\\$instance",
             "( select *"
