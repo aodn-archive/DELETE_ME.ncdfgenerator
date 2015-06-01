@@ -153,8 +153,12 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             conn = store.getConnection(transaction);
 
             NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
-//            encoderBuilder.setLayerConfigDir(workingDir); // TODO should be removed
+
+            // use open recursion
             encoderBuilder.setTmpCreationDir(workingDir);
+            encoderBuilder.setDefinition(definition);
+            encoderBuilder.setFilterExpr(cqlFilter);
+            encoderBuilder.setConnection(conn);
 
 
             // OK. we want to get rid of passing the typeName, and just pass the config 
@@ -165,11 +169,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
             // so we need to expose this. 
 
-
-
-
-            // TODO args as builder methods
-            NcdfEncoder encoder = encoderBuilder.create(null, cqlFilter, conn);
+            NcdfEncoder encoder = encoderBuilder.create();
 
             StreamAdaptorSource source = new NetcdfAdaptorSource(encoder, transaction, conn);
 
