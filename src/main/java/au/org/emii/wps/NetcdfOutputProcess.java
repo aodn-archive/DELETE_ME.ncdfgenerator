@@ -138,6 +138,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
 
             System.out.println( "\nhere0  - definition is " + definition );
+            
+            System.out.println( "\n$$$$$$$  - dataStoreName is " + definition.getDataSource().getDataStoreName() );
 
  
 //            System.out.println( "layerInfo " + layerInfo ); 
@@ -153,6 +155,14 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
 
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
+
+
+            // store.getParametersInfo();
+            String s = store.getDatabaseSchema(); 
+
+            System.out.println( "\n$$$$$ THE SCHEMA IS " + s );
+ 
+
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
 

@@ -67,10 +67,12 @@ public class NcdfEncoder {
 
         DataSource dataSource = definition.getDataSource();
 
+/*
         // do not quote search path!.
         PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
         pathStmt.execute();
         pathStmt.close();
+*/
 
         //Batch results set
         conn.setAutoCommit(false);

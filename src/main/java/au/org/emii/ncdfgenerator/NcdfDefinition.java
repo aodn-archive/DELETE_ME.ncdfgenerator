@@ -23,23 +23,23 @@ public class NcdfDefinition {
         this.variables = variables;
     }
 
-    DataSource getDataSource() {
+    public DataSource getDataSource() {
         return dataSource;
     }
 
-    FilenameTemplate getFilenameTemplate() {
+    public FilenameTemplate getFilenameTemplate() {
         return filenameTemplate;
     }
 
-    List<IDimension> getDimensions() {
+    public List<IDimension> getDimensions() {
         return dimensions;
     }
 
-    List<IVariable> getVariables() {
+    public List<IVariable> getVariables() {
         return variables;
     }
 
-    List<Attribute> getGlobalAttributes() {
+    public List<Attribute> getGlobalAttributes() {
         return globalAttributes;
     }
 }

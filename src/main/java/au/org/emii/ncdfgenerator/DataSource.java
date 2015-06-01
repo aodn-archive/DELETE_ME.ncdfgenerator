@@ -1,6 +1,6 @@
 package au.org.emii.ncdfgenerator;
 
-class DataSource {
+public class DataSource {
     private final String dataStoreName;
     private final String virtualDataTable;
     private final String virtualInstanceTable;
