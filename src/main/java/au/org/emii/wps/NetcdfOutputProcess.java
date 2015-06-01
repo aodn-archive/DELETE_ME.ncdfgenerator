@@ -137,6 +137,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 
 
+            System.out.println( "\nhere0  - definition is " + definition );
+
  
 //            System.out.println( "layerInfo " + layerInfo ); 
 /*
@@ -152,8 +154,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
 
-            NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder()
-                .setTmpCreationDir(workingDir)
+            NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
+
+            encoderBuilder.setTmpCreationDir(workingDir)
                 .setDefinition(definition)
                 .setFilterExpr(cqlFilter)
                 .setConnection(conn);

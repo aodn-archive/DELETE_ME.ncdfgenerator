@@ -52,10 +52,14 @@ public class NcdfEncoderBuilder {
         NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
 */
 
+
+        System.out.println( "here1 definition  " + definition );
+
         if(tmpCreationDir == null) {
            throw new IllegalArgumentException("tmpCreationDir not set");
         }
         else if(definition == null) {
+            
            throw new IllegalArgumentException("definition not set");
         }
         else if(filterExpr == null || filterExpr.equals("")) {
@@ -78,8 +82,13 @@ public class NcdfEncoderBuilder {
         return this;
     }
 
-    public final NcdfEncoderBuilder setDefinition(NcdfDefinition ncdfDefinition) {
+    public final NcdfEncoderBuilder setDefinition(NcdfDefinition definition) {
+
+        System.out.println( "here2 setDefinition  " + definition );
         this.definition = definition;
+
+        System.out.println( "here3 setDefinition  " + this.definition );
+
         return this;
     }
 
