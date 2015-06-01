@@ -63,17 +63,23 @@ public class NcdfEncoder {
         featureInstancesRS = null;
     }
 
+    private String qualifySchema(String table) {
+        if(schema != null && !schema.equals("")) {
+            return schema + "." + table;
+        } else {
+            return table;
+        }
+    }
+
     private String getVirtualDataTable() {
         DataSource dataSource = definition.getDataSource();
-        return dataSource.getVirtualDataTable();
+        return qualifySchema(dataSource.getVirtualDataTable());
     }
 
     private String getVirtualInstanceTable() {
         DataSource dataSource = definition.getDataSource();
-        return dataSource.getVirtualInstanceTable();
+        return qualifySchema(dataSource.getVirtualInstanceTable());
     }
-
-
 
     public void prepare(IOutputFormatter outputFormatter) throws Exception
     {
@@ -81,11 +87,12 @@ public class NcdfEncoder {
 
 //        DataSource dataSource = definition.getDataSource();
 
+/*
         // do not quote search path!.
         PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + schema + ", public");
         pathStmt.execute();
         pathStmt.close();
-
+*/
         //Batch results set
         conn.setAutoCommit(false);
 
@@ -160,7 +167,6 @@ public class NcdfEncoder {
             }
             else {
                 throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
-
             }
 
             if (value == null) {
