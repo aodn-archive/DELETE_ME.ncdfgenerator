@@ -9,7 +9,6 @@ import ucar.ma2.Array;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +24,7 @@ public class NcdfEncoder {
     private final IExprParser exprParser;
     private final IDialectTranslate translate;
     private final Connection conn;
+    private final String schema;
     private final ICreateWritable createWritable;
     private final NcdfDefinition definition;
     private final String filterExpr;
@@ -42,6 +42,7 @@ public class NcdfEncoder {
         IExprParser exprParser,
         IDialectTranslate translate,
         Connection conn,
+        String schema,
         ICreateWritable createWritable,
         IAttributeValueParser attributeValueParser,
         NcdfDefinition definition,
@@ -50,6 +51,7 @@ public class NcdfEncoder {
         this.exprParser = exprParser;
         this.translate = translate;
         this.conn = conn;
+        this.schema = schema;
         this.createWritable = createWritable;
         this.attributeValueParser = attributeValueParser;
         this.definition = definition;
@@ -61,18 +63,24 @@ public class NcdfEncoder {
     }
 
 
+    private String getVirtualDataTable() {
+        return definition.getDataSource().getVirtualDataTable();
+    }
+
+    private String getVirtualInstanceTable() {
+        return definition.getDataSource().getVirtualInstanceTable();
+    }
+
     public void prepare(IOutputFormatter outputFormatter) throws Exception
     {
         this.outputFormatter = outputFormatter;
 
-        DataSource dataSource = definition.getDataSource();
-
         // do not quote search path!.
-        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + dataSource.getSchema() + ", public");
+        PreparedStatement pathStmt = conn.prepareStatement("set search_path=" + schema + ", public");
         pathStmt.execute();
         pathStmt.close();
 
-        //Batch results set
+        // Batch results set
         conn.setAutoCommit(false);
 
         IExpression selectionExpr = exprParser.parseExpression(filterExpr);
@@ -83,11 +91,12 @@ public class NcdfEncoder {
         // And there's no optimisation penalty since both the initial and instance queries have to hit the big data table
         String instanceQuery =
             "select distinct data.instance_id"
-            + " from (" + dataSource.getVirtualDataTable() + ") as data"
-            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " from (" + getVirtualDataTable() + ") as data"
+            + " left join (" + getVirtualInstanceTable() + ") instance"
             + " on instance.id = data.instance_id"
             + " where " + selectionClause
             + ";";
+
 
         PreparedStatement featuresStmt = conn.prepareStatement(instanceQuery);
         featuresStmt.setFetchSize(fetchSize);
@@ -100,12 +109,10 @@ public class NcdfEncoder {
     public boolean writeNext() throws Exception
     {
         if (!featureInstancesRS.next()) {
-            logger.debug("finished");
+            logger.info("finished, closing outputFormatter");
             outputFormatter.close();
             return false;
         }
-
-        DataSource dataSource = definition.getDataSource();
 
         long instanceId = featureInstancesRS.getLong(1);
 
@@ -119,15 +126,15 @@ public class NcdfEncoder {
 
         String query =
             "select *"
-            + " from (" + dataSource.getVirtualDataTable() + ") as data"
-            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " from (" + getVirtualDataTable() + ") as data"
+            + " left join (" + getVirtualInstanceTable() + ") instance"
             + " on instance.id = data.instance_id"
             + " where " + selectionClause
             + " and data.instance_id = " + Long.toString(instanceId)
             + " order by " + orderClause
             + ";";
 
-        logger.debug("instanceId " + instanceId + ", " + query);
+        logger.info("instanceId " + instanceId + ", " + query);
 
         populateValues(query, definition.getDimensions(), definition.getVariables());
 
@@ -142,7 +149,7 @@ public class NcdfEncoder {
                 value = attributeValueParser.parse(attribute.getValue()).getValue();
             }
             else if (attribute.getSql() != null) {
-                value = evaluateSql(dataSource, instanceId, selectionClause, orderClause, attribute.getSql());
+                value = evaluateSql(instanceId, selectionClause, orderClause, attribute.getSql());
             }
             else {
                 throw new NcdfGeneratorException("No value defined for global attribute '" + name + "'");
@@ -187,7 +194,7 @@ public class NcdfEncoder {
         writer.close();
 
         // get filename
-        Object filename = evaluateSql(dataSource, instanceId, selectionClause, orderClause, definition.getFilenameTemplate().getSql());
+        Object filename = evaluateSql(instanceId, selectionClause, orderClause, definition.getFilenameTemplate().getSql());
 
         // this is awful...
         // format the file into the output stream
@@ -199,19 +206,19 @@ public class NcdfEncoder {
     }
 
 
-    private Object evaluateSql(DataSource dataSource, long instanceId, String selectionClause, String orderClause, String sql) throws Exception {
+    private Object evaluateSql(long instanceId, String selectionClause, String orderClause, String sql) throws Exception {
         // we need aliases for the inner select, and to support wrapping the where selection
         sql = sql.replaceAll("\\$instance",
             "( select *"
-            + " from (" + dataSource.getVirtualInstanceTable() + ") instance "
+            + " from (" + getVirtualInstanceTable() + ") instance "
             + " where instance.id = " + Long.toString(instanceId) + ") as instance "
         );
 
         // as for vars/dims, but without the order clause, to support aggregate functions like min/max
         sql = sql.replaceAll("\\$data",
             "( select *"
-            + " from (" + dataSource.getVirtualDataTable() + ") as data"
-            + " left join (" + dataSource.getVirtualInstanceTable() + ") instance"
+            + " from (" + getVirtualDataTable() + ") as data"
+            + " left join (" + getVirtualInstanceTable() + ") instance"
             + " on instance.id = data.instance_id"
             + " where " + selectionClause
             + " and data.instance_id = " + Long.toString(instanceId)

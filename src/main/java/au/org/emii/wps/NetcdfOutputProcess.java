@@ -1,59 +1,72 @@
 package au.org.emii.wps;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.io.IOUtils;
-
 import org.geotools.data.Transaction;
 import org.geotools.data.DefaultTransaction;
+import org.geotools.feature.NameImpl;
+import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.process.ProcessException;
 import org.geotools.process.factory.DescribeParameter;
 import org.geotools.process.factory.DescribeProcess;
 import org.geotools.process.factory.DescribeResult;
+
 import org.geoserver.wps.gs.GeoServerProcess;
 import org.geoserver.wps.process.RawData;
 import org.geoserver.wps.process.RawData;
 import org.geoserver.wps.resource.WPSResourceManager;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
-import org.geotools.jdbc.JDBCDataStore;
+import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.NamespaceInfo;
+import org.geoserver.config.GeoServerDataDirectory;
+import org.geoserver.platform.GeoServerResourceLoader;
 
 import au.org.emii.ncdfgenerator.NcdfEncoder;
 import au.org.emii.ncdfgenerator.NcdfEncoderBuilder;
 import au.org.emii.wps.StreamAdaptor;
 import au.org.emii.wps.StreamAdaptorSource;
 
+import javax.servlet.ServletContext;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import au.org.emii.ncdfgenerator.NcdfDefinitionXMLParser;
+import au.org.emii.ncdfgenerator.NcdfDefinition;
+
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
 public class NetcdfOutputProcess implements GeoServerProcess {
 
+    private static final String NETCDF_FILENAME = "netcdf.xml";
     private static final Logger logger = LoggerFactory.getLogger(NetcdfOutputProcess.class);
     private final WPSResourceManager resourceManager;
     private final Catalog catalog;
     private final String workingDir;
+    private final ServletContext context;
 
-    public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog) {
-
-        logger.info("constructor, catalog " + catalog);
-
+    public NetcdfOutputProcess(WPSResourceManager resourceManager, Catalog catalog, ServletContext context) {
         this.resourceManager = resourceManager;
         this.catalog = catalog;
+        this.context = context;
         this.workingDir = getWorkingDir(resourceManager);
     }
 
     @DescribeResult(name="result", description="Zipped netcdf files", meta={"mimeTypes=application/zip"})
 
     public RawData execute(
+        @DescribeParameter(name="namespace", description="Namespace for collection")
+        String namespace,
         @DescribeParameter(name="typeName", description="Collection to download")
         String typeName,
         @DescribeParameter(name="cqlFilter", description="CQL Filter to apply")
@@ -64,19 +77,52 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         Connection conn = null;
 
         try {
-            _writeTemplateToWorkingDir(typeName);
+            // lookup the layer in the catalog
+            LayerInfo layerInfo = null;
+            if(namespace != null && !namespace.equals("")) {
+                NamespaceInfo ns = catalog.getNamespaceByPrefix(namespace);
+                layerInfo = catalog.getLayerByName(new NameImpl(ns.getURI(), typeName));
+            } else {
+                layerInfo = catalog.getLayerByName(typeName);
+            }
 
-            DataStoreInfo dsinfo = catalog.getDataStoreByName("imos", "JNDI_anmn_ts");
+            if(layerInfo == null) {
+                throw new ProcessException("Failed to find typename '" + typeName + "', namespace '" + namespace + "'");
+            }
+
+            // get xml definition file path
+            String dataPath = GeoServerResourceLoader.lookupGeoServerDataDirectory(context);
+            GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(new File(dataPath));
+            String typeNamePath = dataDirectory.get(layerInfo).dir().getAbsolutePath();
+            String filePath = typeNamePath + "/" + NETCDF_FILENAME;
+
+            // decode definition
+            InputStream config = new FileInputStream(filePath);
+            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
+            Node node = document.getFirstChild();
+            NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
+
+            // get store
+            String dataStoreName = definition.getDataSource().getDataStoreName();
+            DataStoreInfo dsinfo = catalog.getDataStoreByName(namespace, dataStoreName);
             JDBCDataStore store = (JDBCDataStore)dsinfo.getDataStore(null);
+
+            // resources
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
 
+            // create the netcdf encoder
             NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
-            encoderBuilder.setLayerConfigDir(workingDir); // TODO should be removed
-            encoderBuilder.setTmpCreationDir(workingDir);
 
-            // TODO args as builder methods
-            NcdfEncoder encoder = encoderBuilder.create(typeName, cqlFilter, conn);
+            encoderBuilder.setTmpCreationDir(workingDir)
+                .setDefinition(definition)
+                .setFilterExpr(cqlFilter)
+                .setConnection(conn)
+                .setSchema(store.getDatabaseSchema())
+            ;
+
+            NcdfEncoder encoder = encoderBuilder.create();
+
             StreamAdaptorSource source = new NetcdfAdaptorSource(encoder, transaction, conn);
             InputStream is = new StreamAdaptor(source);
 
@@ -101,25 +147,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         }
     }
 
-   private void _writeTemplateToWorkingDir(String typeName) throws IOException {
-       ClassLoader loader = this.getClass().getClassLoader();
-       String templateFilename = String.format("%s.xml", typeName);
-       URL url = loader.getResource(String.format("templates/%s", templateFilename));
 
-       if (url == null) {
-           throw new IllegalArgumentException(String.format("Template file not found: %s", templateFilename));
-       }
-
-       try (InputStream templateIn = url.openStream();
-            OutputStream templateOut = new FileOutputStream(
-               new File(workingDir, templateFilename),
-               false)
-       ) {
-           IOUtils.copy(templateIn, templateOut);
-       }
-   }
-
-   private String getWorkingDir(WPSResourceManager resourceManager) {
+    private String getWorkingDir(WPSResourceManager resourceManager) {
        try {
             // Use WPSResourceManager to create a temporary directory that will get cleaned up
             // when the process has finished executing (Hack! Should be a method on the resource manager)
