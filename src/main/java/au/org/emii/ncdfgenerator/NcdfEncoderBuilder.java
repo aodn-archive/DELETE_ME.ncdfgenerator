@@ -1,15 +1,11 @@
 package au.org.emii.ncdfgenerator;
 
-
 import java.sql.Connection;
-
 
 import au.org.emii.ncdfgenerator.cql.ExprParser;
 import au.org.emii.ncdfgenerator.cql.IDialectTranslate;
 import au.org.emii.ncdfgenerator.cql.IExprParser;
 import au.org.emii.ncdfgenerator.cql.PGDialectTranslate;
-
-// import au.org.emii.ncdfgenerator.NcdfDefinition;
 
 
 public class NcdfEncoderBuilder {
