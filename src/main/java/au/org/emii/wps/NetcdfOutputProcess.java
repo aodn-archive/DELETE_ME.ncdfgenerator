@@ -152,13 +152,11 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             transaction = new DefaultTransaction("handle");
             conn = store.getConnection(transaction);
 
-            NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder();
-
-            // use open recursion
-            encoderBuilder.setTmpCreationDir(workingDir);
-            encoderBuilder.setDefinition(definition);
-            encoderBuilder.setFilterExpr(cqlFilter);
-            encoderBuilder.setConnection(conn);
+            NcdfEncoderBuilder encoderBuilder = new NcdfEncoderBuilder()
+                .setTmpCreationDir(workingDir)
+                .setDefinition(definition)
+                .setFilterExpr(cqlFilter)
+                .setConnection(conn);
 
 
             // OK. we want to get rid of passing the typeName, and just pass the config 

@@ -73,20 +73,24 @@ public class NcdfEncoderBuilder {
         this.layerConfigDir = layerConfigDir;
     }
 */
-    public final void setTmpCreationDir(String tmpCreationDir) {
+    public final NcdfEncoderBuilder setTmpCreationDir(String tmpCreationDir) {
         this.tmpCreationDir = tmpCreationDir;
+        return this;
     }
 
-    public final void setDefinition(NcdfDefinition ncdfDefinition) {
+    public final NcdfEncoderBuilder setDefinition(NcdfDefinition ncdfDefinition) {
         this.definition = definition;
+        return this;
     }
 
-    public final void setFilterExpr(String filterExpr) {
+    public final NcdfEncoderBuilder setFilterExpr(String filterExpr) {
         this.filterExpr = filterExpr;
+        return this;
     }
 
-    public final void setConnection(Connection conn) {
+    public final NcdfEncoderBuilder setConnection(Connection conn) {
         this.conn = conn;
+        return this;
     }
 }
 
