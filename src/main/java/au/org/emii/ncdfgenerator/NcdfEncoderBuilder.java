@@ -25,6 +25,7 @@ public class NcdfEncoderBuilder {
     private NcdfDefinition definition;
     private String filterExpr;
     private Connection conn;
+    private String schema;
 
     public NcdfEncoderBuilder() {
     }
@@ -55,7 +56,7 @@ public class NcdfEncoderBuilder {
         ICreateWritable createWritable = new CreateWritable(tmpCreationDir);
         IAttributeValueParser attributeValueParser = new AttributeValueParser();
 
-        return new NcdfEncoder(parser, translate, conn, createWritable, attributeValueParser, definition, filterExpr);
+        return new NcdfEncoder(parser, translate, conn, schema, createWritable, attributeValueParser, definition, filterExpr);
     }
 
     public final NcdfEncoderBuilder setTmpCreationDir(String tmpCreationDir) {
@@ -77,5 +78,11 @@ public class NcdfEncoderBuilder {
         this.conn = conn;
         return this;
     }
+
+    public final NcdfEncoderBuilder setSchema(String schema) {
+        this.schema = schema;
+        return this;
+    }
+
 }
 

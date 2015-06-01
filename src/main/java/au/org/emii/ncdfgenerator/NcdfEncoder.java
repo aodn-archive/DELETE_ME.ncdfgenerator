@@ -25,6 +25,7 @@ public class NcdfEncoder {
     private final IExprParser exprParser;
     private final IDialectTranslate translate;
     private final Connection conn;
+    private final String schema;
     private final ICreateWritable createWritable;
     private final NcdfDefinition definition;
     private final String filterExpr;
@@ -42,6 +43,7 @@ public class NcdfEncoder {
         IExprParser exprParser,
         IDialectTranslate translate,
         Connection conn,
+        String schema,
         ICreateWritable createWritable,
         IAttributeValueParser attributeValueParser,
         NcdfDefinition definition,
@@ -50,6 +52,7 @@ public class NcdfEncoder {
         this.exprParser = exprParser;
         this.translate = translate;
         this.conn = conn;
+        this.schema = schema;
         this.createWritable = createWritable;
         this.attributeValueParser = attributeValueParser;
         this.definition = definition;

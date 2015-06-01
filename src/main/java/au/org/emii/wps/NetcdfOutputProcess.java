@@ -159,7 +159,6 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
             // store.getParametersInfo();
             String s = store.getDatabaseSchema(); 
-
             System.out.println( "\n$$$$$ THE SCHEMA IS " + s );
  
 
@@ -171,7 +170,9 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             encoderBuilder.setTmpCreationDir(workingDir)
                 .setDefinition(definition)
                 .setFilterExpr(cqlFilter)
-                .setConnection(conn);
+                .setConnection(conn)
+                .setSchema(store.getDatabaseSchema())
+            ;
 
 
             // OK. we want to get rid of passing the typeName, and just pass the config 
