@@ -44,6 +44,8 @@ import org.w3c.dom.Node;
 import au.org.emii.ncdfgenerator.NcdfDefinitionXMLParser;
 import au.org.emii.ncdfgenerator.NcdfDefinition;
 
+import org.apache.commons.io.IOUtils;
+
 
 @DescribeProcess(title="NetCDF download", description="Subset and download collection as NetCDF files")
 public class NetcdfOutputProcess implements GeoServerProcess {
@@ -75,6 +77,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
 
         Transaction transaction = null;
         Connection conn = null;
+        InputStream config = null;
 
         try {
             // lookup the layer in the catalog
@@ -97,7 +100,7 @@ public class NetcdfOutputProcess implements GeoServerProcess {
             String filePath = typeNamePath + "/" + NETCDF_FILENAME;
 
             // decode definition
-            InputStream config = new FileInputStream(filePath);
+            config = new FileInputStream(filePath);
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(config);
             Node node = document.getFirstChild();
             NcdfDefinition definition = new NcdfDefinitionXMLParser().parse(node);
@@ -144,6 +147,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
                 }
             }
             throw new ProcessException(e);
+        } finally {
+            IOUtils.closeQuietly(config);
         }
     }
 
