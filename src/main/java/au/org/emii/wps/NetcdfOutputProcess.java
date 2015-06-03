@@ -61,6 +61,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         this.catalog = catalog;
         this.context = context;
         this.workingDir = getWorkingDir(resourceManager);
+
+        logger.info("constructor");
     }
 
     @DescribeResult(name="result", description="Zipped netcdf files", meta={"mimeTypes=application/zip"})
@@ -74,6 +76,8 @@ public class NetcdfOutputProcess implements GeoServerProcess {
         String cqlFilter,
         ProgressListener progressListener
     ) throws ProcessException {
+
+        logger.info("execute");
 
         Transaction transaction = null;
         Connection conn = null;
