@@ -109,8 +109,12 @@ public class NcdfEncoder {
     public boolean writeNext() throws Exception
     {
         if (!featureInstancesRS.next()) {
-            logger.info("finished, closing outputFormatter");
-            outputFormatter.close();
+            logger.info("no more instances");
+            if(outputFormatter != null) {
+                logger.info("closing outputFormatter");
+                outputFormatter.close();
+                outputFormatter = null;
+            }
             return false;
         }
 
@@ -134,7 +138,7 @@ public class NcdfEncoder {
             + " order by " + orderClause
             + ";";
 
-        logger.info("instanceId " + instanceId + ", " + query);
+        logger.debug("instanceId " + instanceId + ", " + query);
 
         populateValues(query, definition.getDimensions(), definition.getVariables());
 
@@ -156,7 +160,7 @@ public class NcdfEncoder {
             }
 
             if (value == null) {
-                logger.error("Null attribute value '" + name + "'");
+                logger.warn("Null attribute value '" + name + "'");
             }
             else if (value instanceof Number) {
                 writer.addGlobalAttribute(name, (Number)value);
