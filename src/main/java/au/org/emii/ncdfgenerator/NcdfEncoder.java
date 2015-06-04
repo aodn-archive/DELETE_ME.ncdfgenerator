@@ -73,6 +73,9 @@ public class NcdfEncoder {
 
     public void prepare(IOutputFormatter outputFormatter) throws Exception
     {
+
+        System.out.println( "prepare() " ); 
+
         this.outputFormatter = outputFormatter;
 
         // do not quote search path!.
@@ -108,9 +111,16 @@ public class NcdfEncoder {
 
     public boolean writeNext() throws Exception
     {
+
+
+        System.out.println( "writeNext() " ); 
+
         if (!featureInstancesRS.next()) {
             logger.info("no more instances");
+            System.out.println( "no more instances" ); 
             if(outputFormatter != null) {
+
+                System.out.println( "closing outputFormatter" ); 
                 logger.info("closing outputFormatter");
                 outputFormatter.close();
                 outputFormatter = null;

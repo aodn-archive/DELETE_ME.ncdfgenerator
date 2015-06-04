@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,6 +35,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import java.io.StringWriter;
+import java.io.PrintWriter;
+
+
 
 
 public class NetcdfGeneratorProcesslet implements Processlet {
@@ -42,13 +48,17 @@ public class NetcdfGeneratorProcesslet implements Processlet {
         ProcessletExecutionInfo info) throws ProcessletException
     {   
         try {
-            System.out.println( "\n\n***** process here0 whoot" ) ; 
-            LiteralInput cqlFilter = (LiteralInput) in.getParameter("CQLFilter");
-            System.out.println( "\n\n***** got cqlFilter" ) ; 
-            LiteralInput typeName = (LiteralInput) in.getParameter("TypeName");
-            System.out.println( "\n\n***** got typeName " ) ; 
-            ComplexOutput output = (ComplexOutput) out.getParameter("Result");
-            System.out.println( "\n\n***** filter " + cqlFilter  + " typeName " + typeName) ;
+
+            System.out.println( "\n\n***** x process here0 whoot" ) ; 
+            LiteralInput cqlFilter = (LiteralInput) in.getParameter("cqlFilter");
+            System.out.println( "\n\n***** x got cqlFilter " +  cqlFilter) ; 
+
+            LiteralInput typeName = (LiteralInput) in.getParameter("typeName");
+            System.out.println( "\n\n***** x got typeName " + typeName) ; 
+
+            ComplexOutput output = (ComplexOutput) out.getParameter("output");
+            System.out.println( "\n\n***** x output " + output ) ;
+
             try {
                 // _writeTemplateToLayerConfigDir(typeName.getValue());
 
@@ -72,6 +82,10 @@ public class NetcdfGeneratorProcesslet implements Processlet {
                 String cqlFilter_ = cqlFilter.getValue();
                 String schema = "anmn_ts";
                 String workingDir = "/tmp";
+
+                System.out.println("\n\n***** whoot here " ); 
+
+
                 OutputStream outputStream = output.getBinaryOutputStream(); 
 
                 // create the netcdf encoder
@@ -88,27 +102,36 @@ public class NetcdfGeneratorProcesslet implements Processlet {
 
                 NcdfEncoder encoder = encoderBuilder.create();
 
+                System.out.println("\n\n***** outputStream is " + outputStream); 
+
                 encoder.prepare(new ZipFormatter(outputStream));
 
                 while (encoder.writeNext()); 
 
-
 /*
                 try (Connection conn = getConnection()) {
-
                     NcdfGenerator generator = getGenerator();
                     generator.write(typeName.getValue(), cqlFilter.getValue(), conn, output.getBinaryOutputStream());
-
                 }   
 */
             } catch (Exception e) {
 
-                System.out.println( "\n\n***** problem going to throw" ) ; 
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                String stacktrace = sw.toString();
 
-                throw new ProcessletException("Exception thrown generating zip file " + e); 
+                System.out.println( "\n\n***** exception " + e.getMessage() + "\n" + stacktrace  ) ; 
+
+                throw new ProcessletException("Exception thrown generating zip file " + e + stacktrace ); 
             }   
-        } catch( Exception e) {
-            System.out.println( "\n\n***** exception" ) ; 
+        } catch(Exception e) {
+
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String stacktrace = sw.toString();
+
+            System.out.println( "\n\n***** exception " + e.getMessage() + "\n" + stacktrace  ) ; 
+
             throw e ; 
         }   
     }   
@@ -158,12 +181,31 @@ public class NetcdfGeneratorProcesslet implements Processlet {
    }
 */
    public Connection getConnection() throws SQLException, ClassNotFoundException {
-       Class.forName("org.postgresql.Driver");
-       String url = "jdbc:postgresql://localhost/harvest";
+       // Class.forName("org.postgresql.Driver");
+       String url = "jdbc:postgresql://mydb/harvest";
        Properties props = new Properties();
-       props.setProperty("user","anmn_ts");
-       props.setProperty("password","anmn_ts");
-       return DriverManager.getConnection(url, props);
+       props.setProperty("user","");
+       props.setProperty("password","");
+       props.setProperty("ssl", "true");
+        props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
+        props.setProperty("driver", "org.postgresql.Driver");
+
+
+//       return DriverManager.getConnection(url, props);
+
+        return DriverManager.getConnection(url, props);
+
+/*
+        Properties props = new Properties();
+        props.setProperty("user", env.get("POSTGRES_USER"));
+        props.setProperty("password", env.get("POSTGRES_PASS"));
+        props.setProperty("ssl", "true");
+        props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
+        props.setProperty("driver", "org.postgresql.Driver");
+
+        return DriverManager.getConnection(env.get("POSTGRES_JDBC_URL"), props);
+*/
+
    }
 }
 
