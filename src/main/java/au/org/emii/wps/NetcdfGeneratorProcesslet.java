@@ -38,6 +38,9 @@ import org.w3c.dom.Node;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 
 
@@ -108,12 +111,6 @@ public class NetcdfGeneratorProcesslet implements Processlet {
 
                 while (encoder.writeNext()); 
 
-/*
-                try (Connection conn = getConnection()) {
-                    NcdfGenerator generator = getGenerator();
-                    generator.write(typeName.getValue(), cqlFilter.getValue(), conn, output.getBinaryOutputStream());
-                }   
-*/
             } catch (Exception e) {
 
                 StringWriter sw = new StringWriter();
@@ -150,62 +147,22 @@ public class NetcdfGeneratorProcesslet implements Processlet {
         System.out.println( "\n\n***** destroy" ) ; 
     }   
 
-/*
-    private NcdfGenerator getGenerator() {
-        //TODO: use configured deegree work directory
-        return new NcdfGenerator(
-            System.getProperty("java.io.tmpdir"),
-            System.getProperty("java.io.tmpdir")
-       );
-   }
-*/
 
-/*
-   private void _writeTemplateToLayerConfigDir(String typeName) throws IOException {
-       ClassLoader loader = this.getClass().getClassLoader();
-       String templateFilename = String.format("%s.xml", typeName);
-       URL url = loader.getResource(String.format("templates/%s", templateFilename));
+   public Connection getConnection() throws SQLException, ClassNotFoundException, NamingException, Exception {
 
-       if (url == null) {
-           throw new IllegalArgumentException(String.format("Template file not found: %s", templateFilename));
-       }
+        InitialContext cxt = new InitialContext();
+        if ( cxt == null ) {
+           throw new Exception("Uh oh -- no context!");
+        }
+        System.out.println( "got context" + cxt );
 
-       try (InputStream templateIn = url.openStream();
-            OutputStream templateOut = new FileOutputStream(
-               //TODO: use configured deegree work directory
-               new File(System.getProperty("java.io.tmpdir"), templateFilename),
-               false)
-       ) { 
-           IOUtils.copy(templateIn, templateOut);
-       }
-   }
-*/
-   public Connection getConnection() throws SQLException, ClassNotFoundException {
-       // Class.forName("org.postgresql.Driver");
-       String url = "jdbc:postgresql://mydb/harvest";
-       Properties props = new Properties();
-       props.setProperty("user","");
-       props.setProperty("password","");
-       props.setProperty("ssl", "true");
-        props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
-        props.setProperty("driver", "org.postgresql.Driver");
+        DataSource ds = (DataSource) cxt.lookup( "java:/comp/env/jdbc/harvest_read" );
+        if ( ds == null ) {
+           throw new Exception("Data source not found!");
+        }
+        System.out.println( "got ds " + ds );
 
-
-//       return DriverManager.getConnection(url, props);
-
-        return DriverManager.getConnection(url, props);
-
-/*
-        Properties props = new Properties();
-        props.setProperty("user", env.get("POSTGRES_USER"));
-        props.setProperty("password", env.get("POSTGRES_PASS"));
-        props.setProperty("ssl", "true");
-        props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
-        props.setProperty("driver", "org.postgresql.Driver");
-
-        return DriverManager.getConnection(env.get("POSTGRES_JDBC_URL"), props);
-*/
-
-   }
+        return ds.getConnection();
+    }
 }
 
