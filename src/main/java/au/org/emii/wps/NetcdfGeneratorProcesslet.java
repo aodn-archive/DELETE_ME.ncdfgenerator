@@ -51,8 +51,8 @@ public class NetcdfGeneratorProcesslet implements Processlet {
         ProcessletExecutionInfo info) throws ProcessletException
     {   
         try {
+            System.out.println( "\n\n***** process()" ) ; 
 
-            System.out.println( "\n\n***** x process here0 whoot" ) ; 
             LiteralInput cqlFilter = (LiteralInput) in.getParameter("cqlFilter");
             System.out.println( "\n\n***** x got cqlFilter " +  cqlFilter) ; 
 
@@ -136,19 +136,19 @@ public class NetcdfGeneratorProcesslet implements Processlet {
     @Override
     public void init() {
         // nothing to initialize
-
-        System.out.println( "\n\n***** init" ) ; 
+        System.out.println( "\n\n***** init()" ) ; 
     }   
 
     @Override
     public void destroy() {
         // nothing to destroy
-
-        System.out.println( "\n\n***** destroy" ) ; 
+        System.out.println( "\n\n***** destroy()" ) ; 
     }   
 
 
-   public Connection getConnection() throws SQLException, ClassNotFoundException, NamingException, Exception {
+    public Connection getConnection() throws SQLException, ClassNotFoundException, NamingException, Exception {
+        System.out.println( "\n\n***** getConnection()" ) ; 
+ 
 
         InitialContext cxt = new InitialContext();
         if ( cxt == null ) {
