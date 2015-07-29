@@ -197,7 +197,7 @@
         <attribute name="flag_meaning" value="'Value_out_of_bounds Time_not_sequential Failed_T_Tw_Td_test Failed_true_wind_recomputation_test Platform_velocity_unrealistic Value_exceeds_threshold Discontinuity Erroneous_value Suspect_value_(visual) Value_located_over_land Instrument_malfunction Pre-flagged_as_suspect Spike_in_data_(visual) Time_duplicate Suspect_value_(statistical) Step_in_data_(statistical) Spike_in_data_(statistical) Value_passed_all_tests'"/>
        </attributes>
     </variable>	
-        <variable>
+    <variable>
       <name>ATMP</name>
       <encoder>float</encoder>
       <dimensions>
@@ -342,7 +342,7 @@
 		<attribute name="ancillary_variables" value="'DEWT_quality_control'"/>
 	  </attributes>
     </variable>	
-   <variable>
+    <variable>
       <name>DEWT_quality_control</name>
       <encoder>char</encoder>
       <dimensions>
@@ -404,7 +404,7 @@
 		<attribute name="ancillary_variables" value="'PL_SPD_quality_control'"/>
       </attributes>
     </variable>
-   <variable>
+    <variable>
       <name>PL_SPD_quality_control</name>
       <encoder>char</encoder>
       <dimensions>
@@ -435,7 +435,7 @@
 		<attribute name="ancillary_variables" value="'PL_WDIR_quality_control'"/>
       </attributes>
     </variable>
-   <variable>
+    <variable>
       <name>PL_WDIR_quality_control</name>
       <encoder>char</encoder>
       <dimensions>
@@ -449,7 +449,7 @@
         <attribute name="flag_meaning" value="'Value_out_of_bounds Time_not_sequential Failed_T_Tw_Td_test Failed_true_wind_recomputation_test Platform_velocity_unrealistic Value_exceeds_threshold Discontinuity Erroneous_value Suspect_value_(visual) Value_located_over_land Instrument_malfunction Pre-flagged_as_suspect Spike_in_data_(visual) Time_duplicate Suspect_value_(statistical) Step_in_data_(statistical) Spike_in_data_(statistical) Value_passed_all_tests'"/>
        </attributes>
     </variable>
-        <variable>
+    <variable>
       <name>PL_WSPD</name>
       <encoder>float</encoder>
       <dimensions>
@@ -463,7 +463,7 @@
 		<attribute name="ancillary_variables" value="'PL_WSPD_quality_control'"/>
       </attributes>
     </variable>
-   <variable>
+    <variable>
       <name>PL_WSPD_quality_control</name>
       <encoder>char</encoder>
       <dimensions>
@@ -605,8 +605,7 @@
         <attribute name="flag_meaning" value="'Value_out_of_bounds Time_not_sequential Failed_T_Tw_Td_test Failed_true_wind_recomputation_test Platform_velocity_unrealistic Value_exceeds_threshold Discontinuity Erroneous_value Suspect_value_(visual) Value_located_over_land Instrument_malfunction Pre-flagged_as_suspect Spike_in_data_(visual) Time_duplicate Suspect_value_(statistical) Step_in_data_(statistical) Spike_in_data_(statistical) Value_passed_all_tests'"/>
        </attributes>
     </variable>  
-    <!-- this is a new variable replacing variable TEMP measured by Fantasea Wonder .The harvester has to be modified to create this new var in the DB -->
-     <variable>  
+    <variable>  
       <name>SST</name>
       <encoder>float</encoder>
       <dimensions>
