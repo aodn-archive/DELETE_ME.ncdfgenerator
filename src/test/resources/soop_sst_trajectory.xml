@@ -441,7 +441,7 @@
         <dimension name="TIME"/>
       </dimensions>
       <attributes>
-        <attribute name="long_name" value="'Wind direction (relative to moving platform) in the atmosphere"/>
+        <attribute name="long_name" value="'Wind direction (relative to moving platform) in the atmosphere'"/>
         <attribute name="units" value="'degrees'"/>
         <attribute name="comment" value="'degrees clockwise towards true north'"/>
         <attribute name="_FillValue" value="-9999.f"/>
