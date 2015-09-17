@@ -110,7 +110,7 @@
       <attributes>
         <attribute name="standard_name" value="'latitude'"/>
         <attribute name="long_name" value="'latitude'"/>
-        <attribute name="units" value="'degrees north'"/>
+        <attribute name="units" value="'degree_north'"/>
         <attribute name="axis" value="'Y'"/>
         <attribute name="reference_datum" value="'geographical coordinates, WGS84 projection'"/>
         <attribute name="_FillValue" value="999999."/>
@@ -144,7 +144,7 @@
       <attributes>
         <attribute name="standard_name" value="'longitude'"/>
         <attribute name="long_name" value="'longitude'"/>
-        <attribute name="units" value="'degrees east'"/>
+        <attribute name="units" value="'degree_east'"/>
         <attribute name="axis" value="'X'"/>
         <attribute name="reference_datum" value="'geographical coordinates, WGS84 projection'"/>
         <attribute name="_FillValue" value="999999."/>
@@ -375,8 +375,9 @@
       </dimensions>
       <attributes>
         <attribute name="standard_name" value="'platform_course'"/>
-        <attribute name="long_name" value="'platform_course'"/>
-        <attribute name="units" value="'degrees (clockwise towards true north)'"/>
+        <attribute name="long_name" value="'platform_course'"/> 
+        <attribute name="units" value="'degrees'"/>
+		<attribute name="comment" value="'degrees clockwise towards true north'"/> <!-- moved unit orientation speciifcation from the unit attribute to comment as CF test on unit fails otherwise-->
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
@@ -440,8 +441,9 @@
         <dimension name="TIME"/>
       </dimensions>
       <attributes>
-        <attribute name="long_name" value="'Wind direction (relative to moving platform) in the atmosphere'"/>
-        <attribute name="units" value="'degrees (clockwise towards true north)'"/>
+        <attribute name="long_name" value="'Wind direction (relative to moving platform) in the atmosphere"/>
+        <attribute name="units" value="'degrees'"/>
+		<attribute name="comment" value="'degrees clockwise towards true north'"/>
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
@@ -706,7 +708,7 @@
         <attribute name="valid_max" value="40.f"/>
         <attribute name="_FillValue" value="999999.f"/>
         <attribute name="coordinates" value="'TIME LATITUDE LONGITUDE'"/>
-        <attribute name="ancillary_variables" value="'TEMP_quality_control'"/>
+        <attribute name="ancillary_variables" value="'TEMP_2_quality_control'"/>
       </attributes>
     </variable>
     <variable>
@@ -739,7 +741,7 @@
         <attribute name="valid_max" value="40.f"/>
         <attribute name="_FillValue" value="999999.f"/>
         <attribute name="coordinates" value="'TIME LATITUDE LONGITUDE'"/>
-        <attribute name="ancillary_variables" value="'TEMP_quality_control'"/>
+        <attribute name="ancillary_variables" value="'TEMP_3_quality_control'"/>
       </attributes>
     </variable>
     <variable>
@@ -767,7 +769,8 @@
       <attributes>
         <attribute name="standard_name" value="'wind_from_direction'"/>
         <attribute name="long_name" value="'wind_from_direction'"/>
-        <attribute name="units" value="'degrees (clockwise from true north)'"/>
+        <attribute name="units" value="'degrees'"/>
+		<attribute name="comment" value="' degrees clockwise from true north'"
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
