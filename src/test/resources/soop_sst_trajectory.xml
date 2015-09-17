@@ -375,9 +375,9 @@
       </dimensions>
       <attributes>
         <attribute name="standard_name" value="'platform_course'"/>
-        <attribute name="long_name" value="'platform_course'"/> 
+        <attribute name="long_name" value="'platform_course'"/>
         <attribute name="units" value="'degrees'"/>
-		<attribute name="comment" value="'degrees clockwise towards true north'"/> <!-- moved unit orientation speciifcation from the unit attribute to comment as CF test on unit fails otherwise-->
+        <attribute name="comment" value="'degrees clockwise towards true north'"/> <!-- moved unit orientation speciifcation from the unit attribute to comment as CF test on unit fails otherwise-->
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
@@ -443,7 +443,7 @@
       <attributes>
         <attribute name="long_name" value="'Wind direction (relative to moving platform) in the atmosphere"/>
         <attribute name="units" value="'degrees'"/>
-		<attribute name="comment" value="'degrees clockwise towards true north'"/>
+        <attribute name="comment" value="'degrees clockwise towards true north'"/>
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
@@ -770,7 +770,7 @@
         <attribute name="standard_name" value="'wind_from_direction'"/>
         <attribute name="long_name" value="'wind_from_direction'"/>
         <attribute name="units" value="'degrees'"/>
-		<attribute name="comment" value="' degrees clockwise from true north'"
+        <attribute name="comment" value="'degrees clockwise from true north'"/>
         <attribute name="_FillValue" value="-9999.f"/>
         <attribute name="valid_min" value="0.f"/>
         <attribute name="valid_max" value="360.f"/>
